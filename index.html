@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>D3.js Static Elements</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Pathways</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-fetch@3"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <script src="data.js" defer></script>
     <style>
         body, html {
             margin: 0;
@@ -26,6 +32,6 @@
 </head>
 <body> 
     <svg id="svgContainer" viewBox="0 0 1200 1350" preserveAspectRatio="xMidYMid meet"></svg>
-    <script src="example.js"></script>
+    <script src="paths.js"></script>
 </body>
 </html>
