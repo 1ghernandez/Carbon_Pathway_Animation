@@ -234,10 +234,10 @@ const pathsData = [
                { x: 480, y: 400, name: "TP", bidirectional: true},   
                { x: 480, y: 490, name: "3PG", bidirectional: true},      
                { x: 480, y: 620, name: "PEP", bidirectional: false},      
-               { x: 480, y: 750, name: "PYRc", bidirectional: false}, 
-               { x: 480, y: 875, name: "PYRm"}], // Bidirectional?              final point 
+               { x: 480, y: 750, name: "PYR.c", bidirectional: false}, 
+               { x: 480, y: 875, name: "PYR.m"}], // Bidirectional?              final point 
                name: "Blue Path", curve: false },
-    { points: [{ x: 480, y: 875, name: "PYRm", bidirectional: false}, 
+    { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false}, 
                { x: 490, y: 940, name: "ACECOA", bidirectional: false}, 
                { x: 600, y: 940, name: "CIT", bidirectional: true}], 
                name: "Red Path", curve: true }, 
@@ -273,7 +273,7 @@ const pathsData = [
                name: "Green Path-F", curve: false}, 
     { points: [{ x: 480, y: 100, name: "G6P", bidirectional: false}, 
                { x: 290, y: 100, bidirectional: false}, 
-               { x: 290, y: 50, name: "WALL", well: true, bidirectional: false}], 
+               { x: 290, y: 50, name: "WALL.eff", well: true, bidirectional: false}], 
                name: "WALL Well", curve: false}, 
     { points: [{ x: 480, y: 230, name: "F6P", bidirectional: false}, 
                { x: 180, y: 230, name: "MAN.eff", well: true, bidirectional: false}], 
@@ -323,7 +323,7 @@ const pathsData = [
                { x: 365, y: 1200, name: "METCIT", bidirectional: false}],
                name: "OAA to METCIT", curve: true},
     { points: [{ x: 500, y: 1265, bidirectional: false},
-               { x: 500, y: 1220, name: "PYRm", bidirectional: false}],
+               { x: 500, y: 1220, name: "PYR.m", bidirectional: false}],
                 name: "Bottom PYRm Path", curve: false},
     { points: [{ x: 480, y: 620, name: "PEP", bidirectional: false},
                { x: 570, y: 490, bidirectional: false},
@@ -338,22 +338,22 @@ const pathsData = [
                { x: 365, y: 875, bidirectional: true},
                { x: 493.93398282201787, y: 983.9339828220179, name: "OAA", bidirectional: false}],
                name: "PEP to OAA", curve: false},
-    { points: [{ x: 480, y: 750, name: "PYRc", bidirectional: false},
+    { points: [{ x: 480, y: 750, name: "PYR.c", bidirectional: false},
                { x: 570, y: 670, bidirectional: false},
                { x: 670, y: 670, name: "ALA", bidirectional: false, well: true}],
-               name: "PYRc to ALA", curve: false},
+               name: "PYR.c ALA", curve: false},
     { points: [{ x: 450, y: 1090, name: "MAL", bidirectional: false},
                { x: 285, y: 990, bidirectional: false},
-               { x: 480, y: 875, name: "PYRm", bidirectional: false}],
-               name: "MAL to PYRm", curve: true},
-    { points: [{ x: 480, y: 875, name: "PYRm", bidirectional: false}, 
+               { x: 480, y: 875, name: "PYR.m", bidirectional: false}],
+               name: "MAL to PYR.m", curve: true},
+    { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false}, 
                { x: 450, y: 940, bidirectional: false},
                { x: 493.93398282201787, y: 983.9339828220179, name: "OAA", bidirectional: false}],
-               name: "PYRm to OAA", curve: true},
-    { points: [{ x: 480, y: 875, name: "PYRm", bidirectional: false},
+               name: "PYR.m to OAA", curve: true},
+    { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false},
                { x: 670, y: 800, name: "VAL", bidirectional: false},
                { x: 800, y: 800, name: "LEU", bidirectional: false, well: true}],
-               name: "PYRm to LEU", curve: false},
+               name: "PYR.m to LEU", curve: false},
     { points: [{ x: 670, y: 800, name: "VAL", bidirectional: false},
                { x: 800, y: 670, name: "VAL.eff", bidirectional: false, well: true}],
                name: "VAL to VAL.eff", curve: false},
@@ -362,16 +362,16 @@ const pathsData = [
                { x: 800, y: 850, name: "OAA", bidirectional: false, OAA2: true}],
                name: "CIT to OAA", curve: true},
     { points: [{ x: 620, y: 880, bidirectional: false},
-               { x: 800, y: 890, name: "ACECOAc", bidirectional: false},
-               { x: 970, y: 890, name: "FA", well: true, bidirectional: false}],
-               name: "CIT to FA", curve: false},
+               { x: 800, y: 890, name: "ACECOA.c", bidirectional: false},
+               { x: 970, y: 890, name: "ACECOA.eff", well: true, bidirectional: false}],
+               name: "CIT to ACECOA.eff", curve: false},
     { points: [{ x: 750, y: 1090, name: "ICIT", bidirectional: true},
                { x: 600, y: 1090, name: "GYLX", bidirectional: false},
                { x: 450, y: 1090, name: "MAL", bidirectional: false}],
                name: "ICIT to MAL", curve: false},
     { points: [{ x: 525, y: 1090, bidirectional: false},
                { x: 540, y: 1090},
-               { x: 555, y: 1040, name: "ACECOAm", bidirectional: false, well: true}], // ? is this a well??
+               { x: 555, y: 1040, name: "ACECOA.m", bidirectional: false, well: true}], // ? is this a well??
                name: "ACECOA Curve", curve: true},
     { points: [{ x: 675, y: 1090, bidirectional: false},
                { x: 630, y: 1140},
@@ -403,18 +403,18 @@ const SignificantCoordinates = {
     "TP": {x: 480, y: 400, greenpath: false},
     "3PG": {x: 480, y: 490},
     "PEP": {x: 480, y: 620},
-    "PYRc": {x: 480, y: 750},
+    "PYR.c": {x: 480, y: 750},
     "PYRm": {x: 480, y: 875},
     "ACECOA": {x: 490, y: 940},
     "CIT": { x: 600, y: 940 },
     "P5P": {x: 670, y: 100},
     "X5P": {x: 830, y: 100},
-    "TP": {x: 670, y: 200, greenpath: true},
+    "TP2": {x: 670, y: 200, greenpath: true},
     "E4P": {x: 830, y: 360},
     "S7P": {x: 830, y: 200},
     "HIS": {x: 670, y: 50},
     "NA": {x: 800, y: 50},
-    "WALL": {x: 290, y: 50},
+    "WALL.eff": {x: 290, y: 50},
     "MAN.eff": {x: 180, y: 230},
     "TAG": {x: 230, y: 400},
     "SER": {x: 365, y: 490},
@@ -442,18 +442,19 @@ const SignificantCoordinates = {
     "GLU.ext": {x: 830, y: 1260},
     "SUCC": {x: 600, y: 1240},
     "AKG": {x: 706.0660171779821, y: 1196.066017177982},
-    "FA": {x: 970, y: 890},
+    "ACECOA.eff": {x: 970, y: 890},
     "GYLX": {x: 600, y: 1090},
     "MAL": {x: 450, y: 1090},
-    "ACECOAm": {x: 555, y: 1040},
+    "ACECOA.m": {x: 555, y: 1040},
     "PHE": {x: 670, y: 490},
     "TYR": {x: 670, y: 570},
     "ALA": {x: 670, y: 670},
     "LEU": {x: 800, y: 800},
-    "ACECOAc": {x: 800, y: 890},
+    "ACECOA.c": {x: 800, y: 890},
     "ICIT": {x: 750, y: 1090},
-    "F6P": {x: 670, y: 360, greenpath: false},
-    "OAA": {x: 800, y: 850, oaa2: true},
+    "F6P2": {x: 670, y: 360, greenpath: false},
+    "OAA2": {x: 800, y: 850, oaa2: true},
+    "PYR.m": {x: 480, y: 875}
 };
     
 // Create multiple paths
@@ -515,54 +516,89 @@ async function processMolecules() {
         console.error('Error processing molecules:', error);
     }
 }
+
+function separateParts(molecule, parts, pathsData) {
+    const significantParts = parts.filter(part => SignificantCoordinates.hasOwnProperty(part.trim()));
     
-function animatePath(pathData, callback) {
+    if (significantParts.length < 2) {
+        console.warn(`Not enough significant parts for molecule ${molecule.name}: ${significantParts}`);
+        return;
+    }
+
+    for (let i = 0; i < significantParts.length - 1; i++) {
+        const beginning = significantParts[i].trim();
+        const end = significantParts[i + 1].trim();
+
+        console.log(`Match found for molecule ${molecule.name} with parts ${beginning} -> ${end}`); // for debugging
+
+        let startPoint = SignificantCoordinates[beginning];
+        let endPoint = SignificantCoordinates[end];
+
+        console.log(`Placing dot at coordinates: x=${startPoint.x}, y=${startPoint.y}`); // for debugging
+
+        pathsData.push({ points: [startPoint, endPoint] });
+    }
+}
+
+function animatePath(pathData, fluxValue, callback) {
     const path = svg.append("path")
         .attr("d", d3.line()
             .curve(d3.curveLinear)
             .x(d => d.x)
             .y(d => d.y)(pathData.points))
         .attr("fill", "none")
-        .attr("stroke", "none");  // Make the path invisible
+        .attr("stroke", "none"); // Make the path invisible
 
     const totalLength = path.node().getTotalLength();
 
-    // Create a circle element to represent the dot
-    const dot = svg.append("circle")
-        .attr("r", 10)
-        .attr("fill", "#63FF48");
+    // Calculate the number of dots based on fluxValue
+    const numberOfDots = Math.max(1, Math.round(fluxValue || 1)); // Default to 1 if fluxValue is undefined
+    const animationDelay = 500; // Delay between each dot's animation
 
-    // Function to update the position of the dot along the path
-    function moveDot() {
-        const currentLength = d3.interpolate(0, totalLength);
-        return function(t) {
-            const point = path.node().getPointAtLength(currentLength(t));
-            dot.attr("cx", point.x).attr("cy", point.y);
-        };
+    // Create and animate each dot
+    for (let i = 0; i < numberOfDots; i++) {
+        const dot = svg.append("circle")
+            .attr("r", 10)
+            .attr("fill", "#63FF48");
+
+        // Function to update the position of the dot along the path
+        function moveDot() {
+            return function(t) {
+                const point = path.node().getPointAtLength(t * totalLength);
+                dot.attr("cx", point.x).attr("cy", point.y);
+            };
+        }
+
+        // Animate each dot with a delay
+        dot.transition()
+            .delay(i * animationDelay) // Delay each dot based on its index
+            .duration(animationDuration)
+            .ease(d3.easeLinear)
+            .tween("pathTween", moveDot)
+            .on("end", () => {
+                dot.remove(); // Remove the dot after the animation completes
+                if (i === numberOfDots - 1) {
+                    callback(); // Trigger callback after the last dot
+                }
+            });
     }
 
-    // Animate the dot along the path
-    dot.transition()
-        .duration(animationDuration)
-        .ease(d3.easeLinear)
-        .tween("pathTween", moveDot)
-        .on("end", () => {
-            path.remove();  // Remove the path after the animation completes
-            dot.remove();   // Remove the dot after the animation completes
-            callback();     // Call the callback function to proceed to the next path
-        });
+    path.remove(); // Remove the path after animating all dots
 }
 
 // startAnimation function
-function startAnimation(pathsData) {
+function startAnimation(pathsData, fluxValues) {
     if (currentPathIndex < pathsData.length) {
-        animatePath(pathsData[currentPathIndex], () => {
+        const pathData = pathsData[currentPathIndex];
+        const fluxValue = fluxValues[currentPathIndex]; // Get fluxValue for the current path
+
+        animatePath(pathData, fluxValue, () => {
             currentPathIndex++;
-            setTimeout(() => startAnimation(pathsData), 500);  // Add a 500ms delay before starting the next path animation
+            setTimeout(() => startAnimation(pathsData, fluxValues), 500); // Delay before the next animation
         });
     } else {
-        currentPathIndex = 0;  // Reset to the first path for continuous loop
-        setTimeout(() => startAnimation(pathsData), 500);  // Start again after a delay
+        currentPathIndex = 0; // Reset for a continuous loop
+        setTimeout(() => startAnimation(pathsData, fluxValues), 500); // Restart after a delay
     }
 }
 
@@ -573,39 +609,30 @@ function startPath(allMolecules) {
     }
 
     let pathsData = [];
+    let fluxValues = []; // Array to store flux values for each path
 
     // Iterate through each molecule
     for (const molecule of allMolecules) {
-        // Get the reaction string from the molecule
-        const reaction = molecule.reaction; // Adjust this if your data structure is different
+        const reaction = molecule.reaction;
 
-        // Split the reaction at '->' to get the beginning part
-        const parts = reaction.split('->');
+        // Split the reaction into individual components
+        let parts = reaction.split(/[\+\-><]/).filter(part => part.trim() !== '');
+
         if (parts.length < 2) {
             console.warn(`Invalid reaction format for molecule ${molecule.name}: ${reaction}`);
             continue;
         }
 
-        let beginning = parts[0].trim();
-        let end = parts[1].trim();
-
-        if (SignificantCoordinates.hasOwnProperty(beginning) && SignificantCoordinates.hasOwnProperty(end)) {
-            console.log(`Match found for molecule ${molecule.name} with reaction ${reaction}`); // for debugging
-
-            let startPoint = SignificantCoordinates[beginning];
-            let endPoint = SignificantCoordinates[end];
-
-            console.log(`Placing dot at coordinates: x=${startPoint.x}, y=${startPoint.y}`); // for debugging
-
-            pathsData.push({ points: [startPoint, endPoint] });
-        } else {
-            console.warn(`No match found for beginning or end part: ${beginning} or ${end}`);
-        }
+        // Store fluxValue for the molecule
+        fluxValues.push(parseFloat(molecule.fluxValue)); // Parse and store flux value
+        separateParts(molecule, parts, pathsData);
     }
 
-    // Start animation for all paths
+    console.log("pathsData before animation:", pathsData);
+    console.log("fluxValues before animation:", fluxValues); // Debugging flux values
+
     currentPathIndex = 0;
-    startAnimation(pathsData);
+    startAnimation(pathsData, fluxValues);
 }
 
 processMolecules();
@@ -625,10 +652,6 @@ function placeDotAt(coordinate) {
 function moveMolecule(start, end) {
     // Implement logic to animate the movement of the molecule from start to end
     console.log(`Moving molecule ${molecule.name} from ${start} to ${end}`); // for debugging
-
-    
-
 }
 
-//startAnimation();
-
+startAnimation();
