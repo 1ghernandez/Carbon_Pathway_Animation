@@ -517,26 +517,58 @@ async function processMolecules() {
     }
 }
 
-function separateParts(molecule, parts, pathsData) {
-    const significantParts = parts.filter(part => SignificantCoordinates.hasOwnProperty(part.trim()));
-    
-    if (significantParts.length < 2) {
-        console.warn(`Not enough significant parts for molecule ${molecule.name}: ${significantParts}`);
+function preprocessReaction(reaction) {
+    let reactionType = 'unidirectional';
+    let separator = '->';
+
+    // Check if the reaction is bidirectional
+    if (reaction.includes('<->')) {
+        reactionType = 'bidirectional';
+        separator = '<->';
+    }
+
+    // Split reaction into left and right sides
+    const [leftSide, rightSide] = reaction.split(separator).map(side =>
+        side.split("+").map(part => part.trim())
+    );
+
+    // Identify molecules present on both sides
+    const commonMolecules = leftSide.filter(molecule => rightSide.includes(molecule));
+
+    // Remove common molecules from left and right sides
+    const filteredLeft = leftSide.filter(molecule => !commonMolecules.includes(molecule));
+    const filteredRight = rightSide.filter(molecule => !commonMolecules.includes(molecule));
+
+    return { left: filteredLeft, right: filteredRight, reactionType };
+}
+
+function separateParts(molecule, parts, pathsData, reactionType) {
+    const { left, right } = parts;
+
+    if (left.length === 0 || right.length === 0) {
+        console.warn(`Not enough significant parts for molecule ${molecule.reaction}: left=${left}, right=${right}`);
         return;
     }
 
-    for (let i = 0; i < significantParts.length - 1; i++) {
-        const beginning = significantParts[i].trim();
-        const end = significantParts[i + 1].trim();
+    // Create unidirectional path: reactant -> product
+    const beginning = left[0].trim();
+    const end = right[0].trim();
 
-        console.log(`Match found for molecule ${molecule.name} with parts ${beginning} -> ${end}`); // for debugging
+    if (SignificantCoordinates[beginning] && SignificantCoordinates[end]) {
+        console.log(`Creating path for ${beginning} -> ${end}`); // Debugging
+        pathsData.push({
+            points: [SignificantCoordinates[beginning], SignificantCoordinates[end]],
+            bidirectional: reactionType === 'bidirectional'
+        });
 
-        let startPoint = SignificantCoordinates[beginning];
-        let endPoint = SignificantCoordinates[end];
-
-        console.log(`Placing dot at coordinates: x=${startPoint.x}, y=${startPoint.y}`); // for debugging
-
-        pathsData.push({ points: [startPoint, endPoint] });
+        // If bidirectional, also create product -> reactant
+        if (reactionType === 'bidirectional') {
+            console.log(`Creating path for ${end} -> ${beginning}`); // Debugging
+            pathsData.push({
+                points: [SignificantCoordinates[end], SignificantCoordinates[beginning]],
+                bidirectional: true
+            });
+        }
     }
 }
 
@@ -547,60 +579,58 @@ function animatePath(pathData, fluxValue, callback) {
             .x(d => d.x)
             .y(d => d.y)(pathData.points))
         .attr("fill", "none")
-        .attr("stroke", "none"); // Make the path invisible
+        .attr("stroke", pathData.bidirectional ? "blue" : "grey") // Different color for bidirectional paths
+        .attr("stroke-width", 2);
 
     const totalLength = path.node().getTotalLength();
+    const numberOfDots = Math.min(600, Math.max(1, Math.round(fluxValue || 1)));
+    const animationDelay = 500;
 
-    // Calculate the number of dots based on fluxValue
-    const numberOfDots = Math.max(1, Math.round(fluxValue || 1)); // Default to 1 if fluxValue is undefined
-    const animationDelay = 500; // Delay between each dot's animation
-
-    // Create and animate each dot
     for (let i = 0; i < numberOfDots; i++) {
         const dot = svg.append("circle")
             .attr("r", 10)
             .attr("fill", "#63FF48");
 
-        // Function to update the position of the dot along the path
         function moveDot() {
-            return function(t) {
+            return function (t) {
                 const point = path.node().getPointAtLength(t * totalLength);
                 dot.attr("cx", point.x).attr("cy", point.y);
             };
         }
 
-        // Animate each dot with a delay
         dot.transition()
-            .delay(i * animationDelay) // Delay each dot based on its index
+            .delay(i * animationDelay)
             .duration(animationDuration)
             .ease(d3.easeLinear)
             .tween("pathTween", moveDot)
             .on("end", () => {
-                dot.remove(); // Remove the dot after the animation completes
+                dot.remove();
                 if (i === numberOfDots - 1) {
-                    callback(); // Trigger callback after the last dot
+                    callback();
                 }
             });
     }
 
-    path.remove(); // Remove the path after animating all dots
+    path.remove();
 }
 
 // startAnimation function
 function startAnimation(pathsData, fluxValues) {
     if (currentPathIndex < pathsData.length) {
-        const pathData = pathsData[currentPathIndex];
-        const fluxValue = fluxValues[currentPathIndex]; // Get fluxValue for the current path
-
+        console.log("Starting animation for all paths");
+        pathsData.forEach((pathData, index) => {
+        const fluxValue = fluxValues[index] || 1;
+        console.log(`Starting animation for path: ${pathData.name}`);
         animatePath(pathData, fluxValue, () => {
-            currentPathIndex++;
-            setTimeout(() => startAnimation(pathsData, fluxValues), 500); // Delay before the next animation
+            console.log(`Animation completed for path: ${pathData.name}`);
         });
+    });
     } else {
         currentPathIndex = 0; // Reset for a continuous loop
         setTimeout(() => startAnimation(pathsData, fluxValues), 500); // Restart after a delay
     }
 }
+
 
 function startPath(allMolecules) {
     if (!Array.isArray(allMolecules)) {
@@ -609,44 +639,28 @@ function startPath(allMolecules) {
     }
 
     let pathsData = [];
-    let fluxValues = []; // Array to store flux values for each path
+    let fluxValues = [];
 
-    // Iterate through each molecule
     for (const molecule of allMolecules) {
-        const reaction = molecule.reaction;
+        const { left, right, reactionType } = preprocessReaction(molecule.reaction);
 
-        // Split the reaction into individual components
-        let parts = reaction.split(/[\+\-><]/).filter(part => part.trim() !== '');
-
-        if (parts.length < 2) {
-            console.warn(`Invalid reaction format for molecule ${molecule.name}: ${reaction}`);
+        if (left.length === 0 || right.length === 0) {
+            console.warn(`Skipping molecule with insufficient parts: ${molecule.reaction}`);
             continue;
         }
 
-        // Store fluxValue for the molecule
-        fluxValues.push(parseFloat(molecule.fluxValue)); // Parse and store flux value
-        separateParts(molecule, parts, pathsData);
+        fluxValues.push(parseFloat(molecule.fluxValue)); // Parse flux value
+        separateParts(molecule, { left, right }, pathsData, reactionType);
     }
 
     console.log("pathsData before animation:", pathsData);
-    console.log("fluxValues before animation:", fluxValues); // Debugging flux values
+    console.log("fluxValues before animation:", fluxValues);
 
     currentPathIndex = 0;
     startAnimation(pathsData, fluxValues);
 }
 
 processMolecules();
-
-// Example function to place a dot at a specific coordinate
-function placeDotAt(coordinate) {
-    // Implement logic to place a dot at the given coordinate
-    console.log(`Placing dot at ${coordinate}`); // for debugging
-    svg.append("circle")
-        .attr("cx", coordinate.x)
-        .attr("cy", coordinate.y)
-        .attr("fill", "#63FF48")
-        .attr("r", 10)
-}
 
 // Example function to move the molecule from start to end
 function moveMolecule(start, end) {
