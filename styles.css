@@ -2,11 +2,11 @@
 .tooltip {
     position: absolute;
     text-align: center;
-    padding: 5px;
+    padding: 8px;
     font-size: 12px;
     background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    border-radius: 3px;
+    color: white;
+    border-radius: 4px;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    z-index: 100;
 }
