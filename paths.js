@@ -2,6 +2,23 @@
 
 const svg = d3.select("#svgContainer");
 
+// More thorough initial cleanup
+function cleanupEdgeDots() {
+    svg.selectAll("circle").each(function() {
+        const circle = d3.select(this);
+        const cx = parseFloat(circle.attr("cx") || 0);
+        const cy = parseFloat(circle.attr("cy") || 0);
+        
+        // Check if dot is near the container edges
+        if (cx <= 10 || cx >= width - 10 || cy <= 10 || cy >= height - 10) {
+            circle.remove();
+        }
+    });
+}
+
+// Call both cleanups at initialization
+cleanupEdgeDots();
+
 class Molecule {
     constructor(reactionName, reaction, fluxValue, typeReaction, comments) {
         this.reactionName = reactionName;
@@ -143,13 +160,14 @@ svg.append("text")
     };
     
     // Create the circle path
-    svg.append("circle")
+    const circlePath = svg.append("circle")
         .attr("cx", circleData.cx)
         .attr("cy", circleData.cy)
         .attr("r", circleData.r)
         .attr("fill", "none")
         .attr("stroke", "grey")
-        .attr("stroke-width", 2);
+        .attr("stroke-width", 2)
+        .attr("class", "static-circle");  // Add class to identify it
     
     // Define significant points on the circle
     const CircleSignificantPoints = [
@@ -176,11 +194,12 @@ svg.append("text")
         .data(CircleSignificantPoints)
         .enter()
         .append("circle")
-        .attr("class", "point")
+        .attr("class", "point static-point circle-point")  // Add more specific classes
         .attr("cx", d => d.x)
         .attr("cy", d => d.y)
         .attr("r", d => d.well ? 10 : 5)
-        .attr("fill", d => d.well ? "black" : "#36ADD4")
+        .attr("fill", "#36ADD4")  // Always use blue
+        .attr("data-type", "static");  // Add data attribute to identify static points
     
     // Add labels to the significant points
     svg.selectAll("text.point-label")
@@ -460,7 +479,6 @@ const SignificantCoordinates = {
     
 // Create multiple paths
 pathsData.forEach((pathData, index) => {
-
     const lineGenerator = pathData.curve ? lineGeneratorCurved : lineGeneratorStraight;
 
     // Create the path element
@@ -474,16 +492,16 @@ pathsData.forEach((pathData, index) => {
     // Add circles and labels only for points with names
     const significantPoints = pathData.points.filter(d => d.name);
     
-    // Add points on the path
+    // Add points on the path with static-point class
     svg.selectAll(`.path-point-${index}`)
         .data(significantPoints)
         .enter()
         .append("circle")
-        .attr("class", `path-point-${index}`)
+        .attr("class", `path-point-${index} static-point`)  // Add static-point class
         .attr("cx", d => d.x)
         .attr("cy", d => d.y)
         .attr("r", d => d.well ? 10 : 5)
-        .attr("fill", d => d.well ? "black" : "#36ADD4")
+        .attr("fill", "#36ADD4");  // Always use blue for static points
     
     // Add labels to the points
     svg.selectAll(`.path-label-${index}`)
@@ -491,13 +509,24 @@ pathsData.forEach((pathData, index) => {
         .enter()
         .append("text")
         .attr("class", `path-label-${index}`)
-        .attr("x", d => d.x + 10)
-        .attr("y", d => d.y)
+        .attr("x", d => {
+            // Special handling for ACECOA points
+            if (d.name && d.name.includes('ACECOA')) {
+                return d.x - 60;  // Adjust x position for ACECOA labels
+            }
+            return d.x + 10;
+        })
+        .attr("y", d => {
+            // Special handling for ACECOA points
+            if (d.name && d.name.includes('ACECOA')) {
+                return d.y - 10;  // Adjust y position for ACECOA labels
+            }
+            return d.y;
+        })
         .attr("font-size", "17px")
         .attr("font-family", "arial")
         .attr("fill", "black")
-        .text((d, i) => pathData.name + " " + (i + 1))
-        .text(d => d.name);
+        .text(d => d.name);  // Use the full name, including suffix
 });
 
 console.log("significantPoints:", pathsData); // for debugging
@@ -505,18 +534,213 @@ console.log("CircleSignificantPoints:", CircleSignificantPoints); // for debuggi
 
 // * END: Paths 
 
+// Add these variables near the top
+let animationRunning = false;
+let isPaused = false;
+let activeTransitions = [];
+let pausedDots = [];  // Store paused dot positions
+let currentAnimation = null;  // Store the current animation timeout
+let currentDots = new Set();  // Keep track of active animation dots
+
+// Add this function at the top level
+function cleanupAllDots() {
+    // Remove only animation dots and unclassified dots
+    svg.selectAll("circle").each(function() {
+        const circle = d3.select(this);
+        const isStatic = circle.classed("static-point") || 
+                        circle.classed("circle-point") || 
+                        circle.attr("data-type") === "static";
+        
+        if (!isStatic) {
+            circle.remove();
+        }
+    });
+}
+
+// Modify the animatePath function
+function animatePath(pathData, fluxValue, pathIndex, callback) {
+    const numberOfDots = Math.min(600, Math.max(1, Math.round(fluxValue || 1)));
+    
+    const path = svg.append("path")
+        .datum(pathData.points)
+        .attr("d", pathData.curve ? lineGeneratorCurved : lineGeneratorStraight)
+        .attr("fill", "none")
+        .attr("stroke", "none");
+
+    const pathNode = path.node();
+    const totalLength = pathNode.getTotalLength();
+
+    for (let i = 0; i < numberOfDots; i++) {
+        // Get the starting point of the path
+        const startPoint = pathNode.getPointAtLength(0);
+        
+        const dot = svg.append("circle")
+            .attr("r", 10)
+            .attr("fill", "#63FF48")
+            .attr("class", "animation-dot")
+            .attr("data-path-index", pathIndex)
+            // Set initial position to the start of the path
+            .attr("cx", startPoint.x)
+            .attr("cy", startPoint.y);
+
+        currentDots.add(dot.node());
+
+        const transition = dot.transition()
+            .delay(i * animationDelay)
+            .duration(animationDuration)
+            .ease(d3.easeLinear)
+            .tween("pathTween", () => {
+                let pausePosition = null;
+                
+                return function(t) {
+                    if (!animationRunning) {
+                        if (!pausePosition) {
+                            pausePosition = pathNode.getPointAtLength(t * totalLength);
+                            dot.attr("cx", pausePosition.x)
+                               .attr("cy", pausePosition.y);
+                        }
+                        return;
+                    }
+                    
+                    const point = pathNode.getPointAtLength(t * totalLength);
+                    return dot.attr("cx", point.x)
+                            .attr("cy", point.y);
+                };
+            })
+            .on("end", () => {
+                if (!isPaused) {
+                    currentDots.delete(dot.node());
+                    dot.remove();
+                }
+                if (i === numberOfDots - 1) {
+                    path.remove();
+                    if (callback) callback();
+                }
+            })
+            .on("interrupt", () => {
+                // Make sure to remove the dot if the transition is interrupted
+                if (!isPaused) {
+                    currentDots.delete(dot.node());
+                    dot.remove();
+                }
+            });
+
+        activeTransitions.push(transition);
+    }
+}
+
+// Modify the pauseAnimation function
+function pauseAnimation() {
+    isPaused = true;
+    animationRunning = false;
+    
+    // Just stop the animation without removing dots
+    if (currentAnimation) {
+        clearTimeout(currentAnimation);
+    }
+}
+
+// Modify the stopAnimation function
+function stopAnimation() {
+    isPaused = false;
+    animationRunning = false;
+    
+    if (currentAnimation) {
+        clearTimeout(currentAnimation);
+        currentAnimation = null;
+    }
+    
+    // Clear all tracked dots
+    currentDots.forEach(dot => {
+        d3.select(dot).remove();
+    });
+    currentDots.clear();
+    
+    activeTransitions.forEach(transition => {
+        if (transition.selection) {
+            transition.selection().interrupt();
+        }
+    });
+    activeTransitions = [];
+    
+    // Additional cleanup for edge dots
+    cleanupEdgeDots();
+}
+
+// Modify the startAnimation function
+function startAnimation(pathsData, fluxValues = []) {
+    if (!Array.isArray(pathsData)) {
+        console.error("pathsData is not an array:", pathsData);
+        return;
+    }
+
+    if (!isPaused) {
+        stopAnimation();
+        cleanupEdgeDots();  // Additional cleanup
+    }
+    
+    animationRunning = true;
+    isPaused = false;
+
+    function animate() {
+        if (!animationRunning) return;
+
+        pathsData.forEach((pathData, index) => {
+            const fluxValue = fluxValues[index] || 1;
+            animatePath(pathData, fluxValue, index);
+        });
+
+        currentAnimation = setTimeout(() => {
+            if (animationRunning) {
+                animate();
+            }
+        }, animationDuration + (pathsData.length * animationDelay));
+    }
+
+    animate();
+}
+
+// Modify the processMolecules function
 async function processMolecules() {
     try {
+        // Show loading at start
+        showLoading(true);
+        
+        // Clean up any existing dots when initializing
+        cleanupAllDots();
+        
         const allMolecules = await loadMolecules();
-        console.log("Is allMolecules an array in processMolecules?", Array.isArray(allMolecules)); // Should be true if allMolecules is an array DEBUGGING
-        console.log("Contents of allMolecules in processMolecules:", allMolecules);  // Log contents of allMolecules DEBUGGING
+        
+        // Hide loading after data is loaded
+        showLoading(false);
+        
+        // Add button event listeners
+        document.querySelector('.startButton').addEventListener('click', () => {
+            // Always start fresh
+            isPaused = false;
+            pausedDots = [];
+            startPath(allMolecules);
+        });
 
-        startPath(allMolecules);
+        document.querySelector('.pauseButton').addEventListener('click', () => {
+            pauseAnimation();
+        });
+
+        document.querySelector('.stopButton').addEventListener('click', () => {
+            stopAnimation();
+        });
 
     } catch (error) {
         console.error('Error processing molecules:', error);
+        // Hide loading if there's an error
+        showLoading(false);
     }
 }
+
+// Initialize the loading state to hidden when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    showLoading(false);
+});
 
 function preprocessReaction(reaction) {
     let reactionType = 'unidirectional';
@@ -573,63 +797,6 @@ function separateParts(molecule, parts, pathsData, reactionType) {
     }
 }
 
-function animatePath(pathData, fluxValue, callback) {
-    const numberOfDots = Math.min(600, Math.max(1, Math.round(fluxValue || 1)));
-    
-    // Create a path element specifically for this animation
-    const path = svg.append("path")
-        .datum(pathData.points)
-        .attr("d", pathData.curve ? lineGeneratorCurved : lineGeneratorStraight)
-        .attr("fill", "none")
-        .attr("stroke", "none");  // Make it invisible
-
-    const pathNode = path.node();
-    const totalLength = pathNode.getTotalLength();
-
-    for (let i = 0; i < numberOfDots; i++) {
-        const dot = svg.append("circle")
-            .attr("r", 10)
-            .attr("fill", "#63FF48");
-
-        dot.transition()
-            .delay(i * animationDelay)
-            .duration(animationDuration)
-            .ease(d3.easeLinear)
-            .tween("pathTween", () => {
-                return (t) => {
-                    const point = pathNode.getPointAtLength(t * totalLength);
-                    return dot.attr("cx", point.x)
-                            .attr("cy", point.y);
-                };
-            })
-            .on("end", () => {
-                dot.remove();
-                if (i === numberOfDots - 1) {
-                    path.remove();  // Clean up the temporary path
-                    if (callback) callback();
-                }
-            });
-    }
-}
-
-// startAnimation function
-function startAnimation(pathsData, fluxValues = []) {
-    if (!Array.isArray(pathsData)) {
-        console.error("pathsData is not an array:", pathsData);
-        return;
-    }
-
-    pathsData.forEach((pathData, index) => {
-        const fluxValue = fluxValues[index] || 1;
-        animatePath(pathData, fluxValue);
-    });
-
-    // Restart animation after all paths complete
-    setTimeout(() => startAnimation(pathsData, fluxValues), 
-        animationDuration + (pathsData.length * animationDelay));
-}
-
-
 function startPath(allMolecules) {
     if (!Array.isArray(allMolecules)) {
         console.error("allMolecules is not an array:", allMolecules);
@@ -659,4 +826,15 @@ processMolecules().catch(error => {
 function moveMolecule(start, end) {
     // Implement logic to animate the movement of the molecule from start to end
     console.log(`Moving molecule ${molecule.name} from ${start} to ${end}`); // for debugging
+}
+
+// Add progress bar update
+function updateProgress(progress) {
+    document.querySelector('.progress-bar').style.width = `${progress}%`;
+}
+
+// Add loading state handling
+function showLoading(show) {
+    const overlay = document.querySelector('.loading-overlay');
+    overlay.style.display = show ? 'flex' : 'none';
 }

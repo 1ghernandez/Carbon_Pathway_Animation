@@ -1,0 +1,246 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+h1{
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 3em;
+    font-weight: bold;
+    color: #333;
+    font-family: 'Arial', sans-serif;
+}
+
+.container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 30px;
+}
+
+.svg-wrapper {
+    position: relative;
+    width: 80%;  /* Take up 80% of the container width */
+    height: 90vh;  /* Take up 90% of the viewport height */
+    margin: auto;
+}
+
+svg {
+    width: 100%;
+    height: 100%;
+    max-width: 1200px;
+    max-height: 1350px;
+    background: white;
+    overflow: visible;
+    padding-top: 100px;
+}
+
+.controls-container {
+    position: absolute;
+    right: 45%;  /* Adjust based on the svg-wrapper width (80%) */
+    top: 20vh;    /* Position from top */
+    transform: translateX(100%);  /* Move container to the right of its position */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 10;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Style for all buttons */
+.startButton, .pauseButton, .stopButton {
+    height: 80px;         /* Slightly smaller height */
+    width: 250px;         /* Slightly smaller width */
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 24px;      /* Slightly smaller font */
+    font-weight: bold;
+    transition-duration: 0.4s;
+}
+
+.startButton {
+    color: rgb(87, 202, 255);
+    background-color: white;
+    border: 4px solid rgb(87, 202, 255);
+}
+
+.pauseButton {
+    color: rgb(255, 215, 68);
+    background-color: white;
+    border: 4px solid rgb(255, 215, 68);
+}
+
+.stopButton {
+    color: rgb(255, 102, 102);
+    background-color: white;
+    border: 4px solid rgb(255, 102, 102);
+}
+
+/* Hover effects */
+.startButton:hover {
+    background-color: rgb(87, 202, 255);
+    color: white;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+}
+
+.pauseButton:hover {
+    background-color: rgb(255, 215, 68);
+    color: white;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+}
+
+.stopButton:hover {
+    background-color: rgb(255, 102, 102);
+    color: white;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: none;  /* Initially hidden */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Progress bar */
+.progress-container {
+    width: 100%;
+    height: 4px;
+    background: #f0f0f0;
+    position: absolute;
+    top: 0;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #4CAF50;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* Info panel */
+.info-panel {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.info-button {
+    background: none;
+    border: none;
+    color: #36ADD4;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.info-content {
+    display: none;
+    position: absolute;
+    right: 100%;
+    top: 0;
+    width: 300px;
+    padding: 15px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.info-button:hover + .info-content {
+    display: block;
+}
+
+/* Legend */
+.legend {
+    position: absolute;
+    background: white;
+    padding: 25px;  /* Increased padding */
+    border-radius: 12px;  /* Slightly larger border radius */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    right: 26%;
+    top: 25vh;
+}
+
+.legend h3 {
+    font-size: 24px;  /* Larger title */
+    margin-bottom: 15px;  /* More space below title */
+    font-family: 'Arial', sans-serif;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;  /* More space between dot and text */
+    margin: 10px 0;  /* More vertical space between items */
+    font-size: 20px;  /* Larger text */
+    font-family: 'Arial', sans-serif;
+}
+
+.legend .dot {
+    width: 18px;  /* Larger dots */
+    height: 18px;  /* Larger dots */
+    border-radius: 50%;
+}
+
+.legend .dot.green {
+    background: #63FF48;
+}
+
+.legend .dot.blue {
+    background: #36ADD4;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .controls-container {
+        transform: none;
+        right: 10px;
+    }
+    
+    .legend {
+        bottom: 10px;
+        right: 10px;
+    }
+    
+    .startButton, .pauseButton, .stopButton {
+        width: 200px;
+        height: 60px;
+        font-size: 18px;
+    }
+}
