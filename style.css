@@ -244,3 +244,15 @@ svg {
         font-size: 18px;
     }
 }
+/* styles.css */
+.tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 8px;
+    font-size: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 100;
+}
