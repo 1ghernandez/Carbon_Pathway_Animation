@@ -9,7 +9,7 @@ body, html {
 
 h1{
     position: absolute;
-    top: 30px;  /* Increased from 20px */
+    top: 20px;  /* Reduced from 30px */
     left: 50%;
     transform: translateX(-50%);
     font-size: 2.5em;  /* Slightly smaller for better mobile display */
@@ -27,14 +27,14 @@ h1{
     display: flex;
     justify-content: center;
     align-items: center;
-    padding-top: 80px;  /* Increased from 30px */
+    padding-top: 40px;  /* Reduced from 80px */
     overflow: hidden;
 }
 
 .svg-wrapper {
     position: relative;
     width: 80%;
-    height: 85vh;  /* Slightly reduced to ensure visibility */
+    height: 80vh;  /* Reduced from 85vh to ensure full visibility */
     margin: auto;
     display: flex;
     justify-content: center;
@@ -247,6 +247,14 @@ svg {
         width: 200px;
         height: 60px;
         font-size: 18px;
+    }
+
+    .container {
+        padding-top: 30px;  /* Reduced from 60px */
+    }
+
+    .svg-wrapper {
+        height: 75vh;  /* Slightly smaller for mobile */
     }
 }
 
