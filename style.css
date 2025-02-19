@@ -3,8 +3,8 @@ body, html {
     padding: 0;
     width: 100%;
     height: 100vh;
-    display: flex;
     overflow: hidden;
+    position: fixed;  /* Add this to prevent mobile scrolling */
 }
 
 h1{
@@ -12,27 +12,33 @@ h1{
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 3em;
+    font-size: 2.5em;  /* Slightly smaller for better mobile display */
     font-weight: bold;
     color: #333;
     font-family: 'Arial', sans-serif;
+    margin: 0;
+    z-index: 100;
 }
 
 .container {
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     padding-top: 30px;
+    overflow: hidden;
 }
 
 .svg-wrapper {
     position: relative;
-    width: 80%;  /* Take up 80% of the container width */
-    height: 90vh;  /* Take up 90% of the viewport height */
+    width: 80%;
+    height: 85vh;  /* Slightly reduced to ensure visibility */
     margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 svg {
@@ -42,14 +48,12 @@ svg {
     max-height: 1350px;
     background: white;
     overflow: visible;
-    padding-top: 100px;
 }
 
 .controls-container {
-    position: absolute;
-    right: 45%;  /* Adjust based on the svg-wrapper width (80%) */
-    top: 20vh;    /* Position from top */
-    transform: translateX(100%);  /* Move container to the right of its position */
+    position: fixed;  /* Change to fixed */
+    right: 20px;     /* Simplify positioning */
+    top: 100px;      /* Move below title */
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -188,13 +192,14 @@ svg {
 
 /* Legend */
 .legend {
-    position: absolute;
+    position: fixed;  /* Change to fixed */
     background: white;
-    padding: 25px;  /* Increased padding */
-    border-radius: 12px;  /* Slightly larger border radius */
+    padding: 25px;
+    border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    right: 26%;
-    top: 25vh;
+    right: 20px;    /* Simplify positioning */
+    top: 400px;     /* Position below controls */
+    z-index: 10;
 }
 
 .legend h3 {
@@ -244,6 +249,54 @@ svg {
         font-size: 18px;
     }
 }
+
+@media (max-width: 1024px) {
+    .svg-wrapper {
+        width: 90%;
+    }
+
+    .controls-container {
+        right: 10px;
+        top: 80px;
+    }
+
+    .legend {
+        right: 10px;
+        top: 380px;
+    }
+
+    .startButton, .pauseButton, .stopButton {
+        width: 200px;
+        height: 60px;
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2em;
+    }
+
+    .svg-wrapper {
+        width: 95%;
+    }
+
+    .controls-container {
+        right: 5px;
+    }
+
+    .legend {
+        right: 5px;
+        padding: 15px;
+    }
+
+    .startButton, .pauseButton, .stopButton {
+        width: 150px;
+        height: 50px;
+        font-size: 16px;
+    }
+}
+
 .tooltip {
     position: absolute;
     text-align: center;
