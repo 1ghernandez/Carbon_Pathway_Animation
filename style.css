@@ -211,10 +211,16 @@ svg {
 .legend-item {
     display: flex;
     align-items: center;
-    gap: 15px;  /* More space between dot and text */
+    gap: 15px;  /* More space between image and text */
     margin: 10px 0;  /* More vertical space between items */
     font-size: 20px;  /* Larger text */
     font-family: 'Arial', sans-serif;
+}
+
+.legend-image {
+    width: 18px;  /* Adjust size to match the original dot size */
+    height: 18px;  /* Adjust size to match the original dot size */
+    border-radius: 50%;  /* Optional: if you want to keep the circular appearance */
 }
 
 .legend .dot {

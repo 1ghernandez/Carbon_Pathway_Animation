@@ -197,7 +197,7 @@ svg.append("text")
         .attr("class", "point static-point circle-point")  // Add more specific classes
         .attr("cx", d => d.x)
         .attr("cy", d => d.y)
-        .attr("r", d => d.well ? 10 : 5)
+        .attr("r", 10)
         .attr("fill", "#36ADD4")  // Always use blue
         .attr("data-type", "static");  // Add data attribute to identify static points
     
@@ -257,8 +257,7 @@ const pathsData = [
                { x: 480, y: 750, name: "PYR.c", bidirectional: false}, 
                { x: 480, y: 875, name: "PYR.m"}], // Bidirectional?              final point 
                name: "Blue Path", curve: false },
-    { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false}, 
-               { x: 490, y: 940, name: "ACECOA", bidirectional: false}, 
+    { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false},
                { x: 600, y: 940, name: "CIT", bidirectional: true}], 
                name: "Red Path", curve: true }, 
     { points: generateCirclePath(circleData.cx, circleData.cy, circleData.r), 
@@ -284,8 +283,7 @@ const pathsData = [
                { x: 750, y: 420, bidirectional: false},
                { x: 830, y: 360, name: "E4P", bidirectional: true}],
                name: "Green Path-D", curve: true }, 
-    { points: [{ x: 670, y: 100, name: "P5P", bidirectional: false}, 
-               { x: 670, y: 50, name: "HIS", bidirectional: false}],
+    { points: [{ x: 670, y: 100, name: "P5P", bidirectional: false}],
                name: "Green Path-E", curve: false }, 
     { points: [{ x: 670, y: 100, bidirectional: false}, 
                { x: 760, y: 50, bidirectional: false}, 
@@ -302,27 +300,20 @@ const pathsData = [
                { x: 230, y: 400, name: "TAG", well: true, bidirectional: false}], 
                name: "TAG Well", curve: false},
     { points: [{ x: 480, y: 490, name: "3PG", bidirectional: false}, 
-               { x: 365, y: 490, name: "SER", well: false, bidirectional: false},
-               { x: 365, y: 570, name: "SER.eff", well: true, bidirectional: false}], 
+               { x: 365, y: 490, name: "SER", well: false, bidirectional: false}], 
                name: "SER.eff Path", curve: false},
     { points: [{ x: 365, y: 490, name: "SER", bidirectional: true}, 
-               { x: 230, y: 490, name: "GLY", well: false, bidirectional: false}, 
-               { x: 130, y: 490, name: "GLY.eff", well: true, bidirectional: false}], 
+               { x: 230, y: 490, name: "GLY", well: false, bidirectional: false}], 
                name: "GLY.eff Well", curve: false},
     { points: [{ x: 230, y: 490, name: "GLY", well: false, bidirectional: true},
                { x: 230, y: 600, name: "THR", bidrectional: false},
-               { x: 230, y: 720, name: "ASP", bidirectional: false},
-               { x: 230, y: 830, name: "MET", well: true, bidirectional: false}], 
+               { x: 230, y: 720, name: "ASP", bidirectional: false}], 
                name: "GLY to MET", curve: false},
-    { points: [{ x: 230, y: 600, name: "THR", bidrectional: false},
-               { x: 180, y: 550, bidirectional: false},
-               { x: 90, y: 550, name: "THR.eff", well: true, bidirectional: false}],
+    { points: [{ x: 230, y: 600, name: "THR", bidrectional: false}],
                name: "THR.eff Well", curve: false},
-    { points: [{ x: 230, y: 600, name: "THR", bidrectional: false},
-               { x: 90, y: 600, name: "ILE", well: true, bidrectional: false},],
+    { points: [{ x: 230, y: 600, name: "THR", bidrectional: false}],
                name: "ILE Well", curve: false},
-    { points: [{ x: 230, y: 720, name: "ASP", bidirectional: false},
-               { x: 120, y: 720, name: "ASP.eff", well: true, bidirectional: false}],
+    { points: [{ x: 230, y: 720, name: "ASP", bidirectional: false}],
                name: "ASP.eff Well", curve: false},
     { points: [{ x: 230, y: 720, name: "ASP", bidirectional: true},
                { x: 285, y: 720, bidrectional: true},
@@ -345,22 +336,16 @@ const pathsData = [
     { points: [{ x: 500, y: 1265, bidirectional: false},
                { x: 500, y: 1220, name: "PYR.m", bidirectional: false}],
                 name: "Bottom PYRm Path", curve: false},
-    { points: [{ x: 480, y: 620, name: "PEP", bidirectional: false},
-               { x: 570, y: 490, bidirectional: false},
-               { x: 670, y: 490, name: "PHE", bidirectional: false, well: true}],
+    { points: [{ x: 480, y: 620, name: "PEP", bidirectional: false}],
                name: "PEP to PHE", curve: false},
-    { points: [{ x: 480, y: 620, name: "PEP", bidirectional: false},
-               { x: 570, y: 570, bidirectional: false},
-               { x: 670, y: 570, name: "TYR", bidirectional: false, well: true}],
+    { points: [{ x: 480, y: 620, name: "PEP", bidirectional: false}],
                name: "PEP to TYR", curve: false},
     { points: [{ x: 480, y: 620, name: "PEP", bidirectional: true},
                { x: 365, y: 620, bidirectional: true},
                { x: 365, y: 875, bidirectional: true},
                { x: 493.93398282201787, y: 983.9339828220179, name: "OAA", bidirectional: false}],
                name: "PEP to OAA", curve: false},
-    { points: [{ x: 480, y: 750, name: "PYR.c", bidirectional: false},
-               { x: 570, y: 670, bidirectional: false},
-               { x: 670, y: 670, name: "ALA", bidirectional: false, well: true}],
+    { points: [{ x: 480, y: 750, name: "PYR.c", bidirectional: false}],
                name: "PYR.c ALA", curve: false},
     { points: [{ x: 450, y: 1090, name: "MAL", bidirectional: false},
                { x: 285, y: 990, bidirectional: false},
@@ -370,13 +355,8 @@ const pathsData = [
                { x: 450, y: 940, bidirectional: false},
                { x: 493.93398282201787, y: 983.9339828220179, name: "OAA", bidirectional: false}],
                name: "PYR.m to OAA", curve: true},
-    { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false},
-               { x: 670, y: 800, name: "VAL", bidirectional: false},
-               { x: 800, y: 800, name: "LEU", bidirectional: false, well: true}],
+    { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false}],
                name: "PYR.m to LEU", curve: false},
-    { points: [{ x: 670, y: 800, name: "VAL", bidirectional: false},
-               { x: 800, y: 670, name: "VAL.eff", bidirectional: false, well: true}],
-               name: "VAL to VAL.eff", curve: false},
     { points: [{ x: 600, y: 940, name: "CIT", bidirectional: false},
                { x: 600, y: 860, bidirectional: false},
                { x: 800, y: 850, name: "OAA", bidirectional: false, OAA2: true}],
@@ -398,20 +378,9 @@ const pathsData = [
                { x: 600, y: 1240, name: "SUCC", bidirectional: false}],
                name: "SUCC Curve", curve: true},
     { points: [{ x: 706.0660171779821, y: 1196.066017177982, bidirectional: false, name: "AKG"},
-               { x: 800, y: 1100, name: "HCIT", bidirectional: false,},
-               { x: 880, y: 1030, name: "LYS", bidirectional: false, well: true}],
-               name: "AKG to LYS", curve: false},
-    { points: [{ x: 706.0660171779821, y: 1196.066017177982, bidirectional: false, name: "AKG"},
-               { x: 830, y: 1196.066017177982, name: "GLU", bidirectional: true},
-               { x: 940, y: 1196.066017177982, name: "ARG", bidirectional: true, well: true}],
-               name: "AKG to ARG", curve: false},
-    { points: [{ x: 830, y: 1196.066017177982, name: "GLU", bidirectional: false},
-               { x: 920, y: 1110, name: "PRO", bidirectional: false, well: true}],
-               name: "GLU to PRO", curve: false},
-    { points: [{ x: 830, y: 1196.066017177982, name: "GLU", bidirectional: false},
-               { x: 920, y: 1260, name: "GLU.eff", bidirectional: false, well: true}],
-                name: "GLU to GLU.eff", curve: false},
-    { points: [{ x: 830, y: 1260, name: "GLU.ext", bidirectional: false, well: true},
+               { x: 830, y: 1196.066017177982, name: "GLU", bidirectional: true}],
+               name: "GLU to ARG", curve: false},
+    { points: [{ x: 830, y: 1400, name: "GLU.ext", bidirectional: false, well: true},
                { x: 830, y: 1196.066017177982, name: "GLU", bidirectional: false}],
                name: "GLU.ext to GLU", curve: false}      
 ];
@@ -425,14 +394,12 @@ const SignificantCoordinates = {
     "PEP": {x: 480, y: 620},
     "PYR.c": {x: 480, y: 750},
     "PYRm": {x: 480, y: 875},
-    "ACECOA": {x: 490, y: 940},
     "CIT": { x: 600, y: 940 },
     "P5P": {x: 670, y: 100},
     "X5P": {x: 830, y: 100},
     "TP2": {x: 670, y: 200, greenpath: true},
     "E4P": {x: 830, y: 360},
     "S7P": {x: 830, y: 200},
-    "HIS": {x: 670, y: 50},
     "NA": {x: 800, y: 50},
     "WALL.eff": {x: 290, y: 50},
     "MAN.eff": {x: 180, y: 230},
@@ -440,25 +407,14 @@ const SignificantCoordinates = {
     "SER": {x: 365, y: 490},
     "SER.eff": {x: 365, y: 570},
     "GLY": {x: 230, y: 490},
-    "GLY.eff": {x: 130, y: 490},
     "THR": {x: 230, y: 600},
-    "THR.eff": {x: 90, y: 550},
-    "ILE": {x: 90, y: 600},
     "ASP": {x: 230, y: 720},
-    "ASP.eff": {x: 120, y: 720},
-    "MET": {x: 230, y: 830},
     "PROCOA": {x: 230, y: 1090},
     "METCIT": {x: 365, y: 1200},
     "IMETCIT": {x: 415, y: 1235},
-    "VAL": {x: 670, y: 800},
-    "VAL.eff": {x: 800, y: 670},
     "OAA": {x: 493.93398282201787, y: 983.9339828220179, oaa2: false},
-    "HCIT": {x: 800, y: 1100},
-    "LYS": {x: 880, y: 1030},
     "GLU": {x: 830, y: 1196.066017177982},
     "ARG": {x: 940, y: 1196.066017177982},
-    "PRO": {x: 920, y: 1110},
-    "GLU.eff": {x: 920, y: 1260},
     "GLU.ext": {x: 830, y: 1260},
     "SUCC": {x: 600, y: 1240},
     "AKG": {x: 706.0660171779821, y: 1196.066017177982},
@@ -466,10 +422,6 @@ const SignificantCoordinates = {
     "GYLX": {x: 600, y: 1090},
     "MAL": {x: 450, y: 1090},
     "ACECOA.m": {x: 555, y: 1040},
-    "PHE": {x: 670, y: 490},
-    "TYR": {x: 670, y: 570},
-    "ALA": {x: 670, y: 670},
-    "LEU": {x: 800, y: 800},
     "ACECOA.c": {x: 800, y: 890},
     "ICIT": {x: 750, y: 1090},
     "F6P2": {x: 670, y: 360, greenpath: false},
@@ -500,7 +452,7 @@ pathsData.forEach((pathData, index) => {
         .attr("class", `path-point-${index} static-point`)  // Add static-point class
         .attr("cx", d => d.x)
         .attr("cy", d => d.y)
-        .attr("r", d => d.well ? 10 : 5)
+        .attr("r", 10)
         .attr("fill", "#36ADD4");  // Always use blue for static points
     
     // Add labels to the points
@@ -559,7 +511,8 @@ function cleanupAllDots() {
 
 // Modify the animatePath function
 function animatePath(pathData, fluxValue, pathIndex, callback) {
-    const numberOfDots = Math.min(600, Math.max(1, Math.round(fluxValue || 1)));
+    // Reduce the maximum number of dots but keep enough for smooth animation
+    const numberOfDots = Math.min(300, Math.max(1, Math.round(fluxValue || 1)));
     
     const path = svg.append("path")
         .datum(pathData.points)
@@ -567,41 +520,78 @@ function animatePath(pathData, fluxValue, pathIndex, callback) {
         .attr("fill", "none")
         .attr("stroke", "none");
 
+    // Create gradient definition only once
+    const gradientId = `sphereGradient-${pathIndex}`;
+    if (!svg.select(`#${gradientId}`).node()) {
+        const gradient = svg.append("defs")
+            .append("radialGradient")
+            .attr("id", gradientId)
+            .attr("cx", "50%")
+            .attr("cy", "50%")
+            .attr("r", "50%")
+            .attr("fx", "30%")
+            .attr("fy", "30%");
+
+        gradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", "#ffffff")
+            .attr("stop-opacity", 0.8);
+
+        gradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", "#014f86")
+            .attr("stop-opacity", 1);
+    }
+
     const pathNode = path.node();
     const totalLength = pathNode.getTotalLength();
 
-    for (let i = 0; i < numberOfDots; i++) {
-        // Get the starting point of the path
-        const startPoint = pathNode.getPointAtLength(0);
-        
+    // Use object pooling for dots
+    const dotPool = [];
+    const maxActiveDots = Math.min(50, numberOfDots); // Increased from 30 to 50
+
+    function createDot() {
         const dot = svg.append("circle")
-            .attr("r", 10)
-            .attr("fill", "#63FF48")
+            .attr("r", 7)
+            .attr("fill", `url(#${gradientId})`)
             .attr("class", "animation-dot")
-            .attr("data-path-index", pathIndex)
-            // Set initial position to the start of the path
-            .attr("cx", startPoint.x)
-            .attr("cy", startPoint.y);
+            .attr("data-path-index", pathIndex);
+        dotPool.push(dot);
+        return dot;
+    }
 
-        currentDots.add(dot.node());
+    let currentDotIndex = 0;
+    
+    function animateNextDot() {
+        if (!animationRunning || currentDotIndex >= numberOfDots) {
+            if (currentDotIndex >= numberOfDots) {
+                // Wait for all transitions to complete before cleanup
+                setTimeout(() => {
+                    dotPool.forEach(dot => {
+                        if (dot) {
+                            dot.interrupt();
+                            dot.remove();
+                        }
+                    });
+                    dotPool.length = 0;
+                    path.remove();
+                    if (callback) callback();
+                }, animationDuration);
+            }
+            return;
+        }
 
-        const transition = dot.transition()
-            .delay(i * animationDelay)
+        const dot = createDot();
+        const startPoint = pathNode.getPointAtLength(0);
+        dot.attr("cx", startPoint.x)
+           .attr("cy", startPoint.y);
+
+        dot.transition()
             .duration(animationDuration)
             .ease(d3.easeLinear)
             .tween("pathTween", () => {
-                let pausePosition = null;
-                
-                return function(t) {
-                    if (!animationRunning) {
-                        if (!pausePosition) {
-                            pausePosition = pathNode.getPointAtLength(t * totalLength);
-                            dot.attr("cx", pausePosition.x)
-                               .attr("cy", pausePosition.y);
-                        }
-                        return;
-                    }
-                    
+                return (t) => {
+                    if (!animationRunning) return;
                     const point = pathNode.getPointAtLength(t * totalLength);
                     return dot.attr("cx", point.x)
                             .attr("cy", point.y);
@@ -609,23 +599,29 @@ function animatePath(pathData, fluxValue, pathIndex, callback) {
             })
             .on("end", () => {
                 if (!isPaused) {
-                    currentDots.delete(dot.node());
-                    dot.remove();
-                }
-                if (i === numberOfDots - 1) {
-                    path.remove();
-                    if (callback) callback();
-                }
-            })
-            .on("interrupt", () => {
-                // Make sure to remove the dot if the transition is interrupted
-                if (!isPaused) {
-                    currentDots.delete(dot.node());
-                    dot.remove();
+                    // Only remove dot after ensuring it reached the end
+                    const endPoint = pathNode.getPointAtLength(totalLength);
+                    const currentX = parseFloat(dot.attr("cx"));
+                    const currentY = parseFloat(dot.attr("cy"));
+                    
+                    if (Math.abs(currentX - endPoint.x) < 1 && 
+                        Math.abs(currentY - endPoint.y) < 1) {
+                        dot.remove();
+                        const index = dotPool.indexOf(dot);
+                        if (index > -1) {
+                            dotPool.splice(index, 1);
+                        }
+                    }
+                    
+                    currentDotIndex++;
+                    animateNextDot();
                 }
             });
+    }
 
-        activeTransitions.push(transition);
+    // Start initial dots with slightly increased delay
+    for (let i = 0; i < maxActiveDots; i++) {
+        setTimeout(() => animateNextDot(), i * (animationDelay + 50));
     }
 }
 
@@ -650,21 +646,31 @@ function stopAnimation() {
         currentAnimation = null;
     }
     
-    // Clear all tracked dots
-    currentDots.forEach(dot => {
-        d3.select(dot).remove();
-    });
-    currentDots.clear();
+    // Clear all animation dots
+    svg.selectAll(".animation-dot").remove();
     
-    activeTransitions.forEach(transition => {
-        if (transition.selection) {
-            transition.selection().interrupt();
+    // Clear all gradients created for the animation
+    svg.selectAll("defs").selectAll("[id^='sphereGradient-']").remove();
+    
+    // Clear all temporary paths
+    svg.selectAll("path").each(function() {
+        const path = d3.select(this);
+        if (!path.attr("stroke") || path.attr("stroke") === "none") {
+            path.remove();
         }
     });
+    
+    // Clear all tracked collections
+    currentDots.clear();
     activeTransitions = [];
+    pausedDots = [];
+    
+    // Interrupt any remaining transitions
+    d3.selectAll(".animation-dot").interrupt();
     
     // Additional cleanup for edge dots
     cleanupEdgeDots();
+    cleanupAllDots();
 }
 
 // Modify the startAnimation function
