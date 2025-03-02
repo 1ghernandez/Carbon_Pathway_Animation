@@ -20,8 +20,8 @@ The Carbon Pathways Animation visualizes how carbon molecules move through diffe
   - Stop Animation: Reset the animation
   
 - **Visual Elements**
-  - Green dots: Represent carbon molecules
-  - Blue dots: Represent significant points in the pathway
+  - Blue Spheres: Represent carbon molecules
+  - Light Blue dots: Represent significant points in the pathway
   - Grey paths: Show the routes molecules follow
   - Information tooltip: Provides context about the animation
 
