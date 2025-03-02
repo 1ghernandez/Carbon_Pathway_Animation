@@ -481,16 +481,19 @@ function cleanupAllDots() {
 }
 
 // Animation configuration constants
-const BASE_ANIMATION_DURATION = 5000; // Base duration in ms - all animations will take this long
-const ANIMATION_LOOP_TIME = 15000;    // Overall loop time in ms (15 seconds)
-const MIN_DOTS = 3;                   // Minimum number of dots on any path
-const MAX_DOTS = 30;                  // Maximum number of dots on any path
-const DOT_MULTIPLIER = 35;            // Multiplier for normalized value to determine dot count
+const BASE_ANIMATION_DURATION = 5000;  // Base duration in ms - all animations will take this long
+const ANIMATION_LOOP_TIME = 15000;     // Overall loop time in ms (15 seconds)
+const FIXED_DOT_SPACING = 40;          // Fixed spacing between dots in pixels (same for all paths)
+const MIN_DOTS = 3;                    // Minimum number of dots per path
 
-// Modify the animatePath function to ensure all paths complete at the same time
+// Modify the animatePath function to ensure truly consistent dot spacing
 function animatePath(pathData, normalizedValue, pathIndex, callback) {
     // All paths should take the same amount of time to complete
     const animationDuration = BASE_ANIMATION_DURATION;
+    
+    // Speed is directly proportional to normalized value (0.1 to 1)
+    // Ensure a minimum speed with Math.max
+    const speedFactor = Math.max(0.1, normalizedValue);
     
     const path = svg.append("path")
         .datum(pathData.points)
@@ -524,15 +527,12 @@ function animatePath(pathData, normalizedValue, pathIndex, callback) {
     const pathNode = path.node();
     const totalLength = pathNode.getTotalLength();
     
-    // Calculate number of dots based on normalized value (higher = more dots)
-    // Scale to reasonable range between MIN_DOTS and MAX_DOTS
-    const numberOfDots = Math.min(MAX_DOTS, 
-                          Math.max(MIN_DOTS, 
-                          Math.round(normalizedValue * DOT_MULTIPLIER)));
+    // Calculate number of dots based on fixed pixel spacing for all paths
+    const numberOfDots = Math.max(MIN_DOTS, Math.floor(totalLength / FIXED_DOT_SPACING));
     
-    console.log(`Path ${pathIndex} - Normalized: ${normalizedValue}, Dots: ${numberOfDots}`);
+    console.log(`Path ${pathIndex} - Normalized: ${normalizedValue}, Speed: ${speedFactor}, Dots: ${numberOfDots}, Length: ${totalLength}`);
     
-    // Create dots with even spacing along the path
+    // Create dots with exactly the same spacing for all paths
     for (let i = 0; i < numberOfDots; i++) {
         const dot = svg.append("circle")
             .attr("r", 7)
@@ -547,13 +547,17 @@ function animatePath(pathData, normalizedValue, pathIndex, callback) {
         
         currentDots.add(dot.node());
         
-        // Delay start based on dot position in sequence
-        const delayTime = (i / numberOfDots) * (ANIMATION_LOOP_TIME - animationDuration);
+        // Calculate delay based on normalized speed value
+        // Faster reactions (higher normalized value) will have dots released more frequently
+        const dotPositionPercent = i / numberOfDots;
         
-        // All dots travel at speed proportional to path length 
-        // so they all finish at the same time
+        // Adjust the timing based on speed factor
+        const adjustedDelayPercent = dotPositionPercent * (1 - speedFactor);
+        const delayTime = adjustedDelayPercent * (ANIMATION_LOOP_TIME - animationDuration);
+        
+        // All dots complete their path in the same duration
         const transition = dot.transition()
-            .delay(delayTime)  // Space out dot starts evenly
+            .delay(delayTime)
             .duration(animationDuration)
             .ease(d3.easeLinear)
             .tween("pathTween", () => {
@@ -577,7 +581,7 @@ function animatePath(pathData, normalizedValue, pathIndex, callback) {
     return path;
 }
 
-// Modify startAnimation to use a loop timer
+// Modify startAnimation to loop continuously
 function startAnimation(pathsData, normalizedValues = []) {
     if (!Array.isArray(pathsData)) {
         console.error("pathsData is not an array:", pathsData);
@@ -603,21 +607,25 @@ function startAnimation(pathsData, normalizedValues = []) {
         activePaths.forEach(path => path.remove());
         activePaths.length = 0;
 
+        console.log("Starting new animation cycle at", new Date().toLocaleTimeString());
+        
         // Start animation for each path with its normalized value
         pathsData.forEach((pathData, index) => {
             const normalizedValue = normalizedValues[index] || 0.5; // Default to middle value
             const path = animatePath(pathData, normalizedValue, index);
             activePaths.push(path);
         });
-
-        // Loop the animation
+        
+        // Schedule the next animation loop immediately after this one finishes
         currentAnimation = setTimeout(() => {
             if (animationRunning) {
+                console.log("Animation loop complete, restarting...");
                 animate();
             }
         }, ANIMATION_LOOP_TIME);
     }
 
+    // Start the initial animation
     animate();
 }
 
@@ -841,6 +849,7 @@ function stopAnimation() {
     d3.selectAll(".animation-dot").interrupt();
     
     // Additional cleanup for edge dots
+
     cleanupAllDots();
 }
 
