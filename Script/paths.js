@@ -2,23 +2,6 @@
 
 const svg = d3.select("#svgContainer");
 
-// More thorough initial cleanup
-function cleanupEdgeDots() {
-    svg.selectAll("circle").each(function() {
-        const circle = d3.select(this);
-        const cx = parseFloat(circle.attr("cx") || 0);
-        const cy = parseFloat(circle.attr("cy") || 0);
-        
-        // Check if dot is near the container edges
-        if (cx <= 10 || cx >= width - 10 || cy <= 10 || cy >= height - 10) {
-            circle.remove();
-        }
-    });
-}
-
-// Call both cleanups at initialization
-cleanupEdgeDots();
-
 class Molecule {
     constructor(reaction, fluxValue, normalized) {
         this.reaction = reaction;
@@ -603,7 +586,6 @@ function startAnimation(pathsData, normalizedValues = []) {
 
     if (!isPaused) {
         stopAnimation();
-        cleanupEdgeDots();
     }
     
     animationRunning = true;
@@ -859,7 +841,6 @@ function stopAnimation() {
     d3.selectAll(".animation-dot").interrupt();
     
     // Additional cleanup for edge dots
-    cleanupEdgeDots();
     cleanupAllDots();
 }
 
