@@ -20,25 +20,23 @@ function cleanupEdgeDots() {
 cleanupEdgeDots();
 
 class Molecule {
-    constructor(reactionName, reaction, fluxValue, typeReaction, comments) {
-        this.reactionName = reactionName;
+    constructor(reaction, fluxValue, normalized) {
         this.reaction = reaction;
         this.fluxValue = fluxValue;
-        this.typeReaction = typeReaction;
-        this.comments = comments;
+        this.normalized = normalized;
     }
 }
 
 // Load the CSV data and return a Promise
 function loadMolecules() {
-    return d3.csv("Edit_Flux_Values.csv").then(function(data) {
+    return d3.csv("Flux_Values_for_animation.csv").then(function(data) {
         console.log("Raw CSV data:", data);  // Log raw CSV data DEBUGGING
         console.log("Is data an array?", Array.isArray(data));  // Check if data is an array DEBUGGING
 
         let allMolecules = [];
         data.forEach(d => {
             // Create a new Molecule object for each row in the CSV
-            let molecule = new Molecule(d['Reaction Name'], d['Reaction'], d['Flux Value'], d['Type of Reaction'], d['comments']);
+            let molecule = new Molecule(d['Reaction'], d['Flux Value'], d['Normalized']);
             allMolecules.push(molecule);
         });
 
@@ -291,14 +289,14 @@ const pathsData = [
                name: "Green Path-F", curve: false}, 
     { points: [{ x: 480, y: 100, name: "G6P", bidirectional: false}, 
                { x: 290, y: 100, bidirectional: false}, 
-               { x: 290, y: 50, name: "WALL.eff", well: true, bidirectional: false}], 
+               { x: 290, y: 50, name: "WALL", well: true, bidirectional: false}], 
                name: "WALL Well", curve: false}, 
     { points: [{ x: 480, y: 230, name: "F6P", bidirectional: false}, 
-               { x: 180, y: 230, name: "MAN.eff", well: true, bidirectional: false}], 
-               name: "MAN.eff Well", curve: false}, 
+               { x: 180, y: 230, name: "MAN", well: true, bidirectional: false}], 
+               name: "MAN Well", curve: false}, 
     { points: [{ x: 480, y: 400, name: "TP", bidirectional: false}, 
-               { x: 230, y: 400, name: "TAG", well: true, bidirectional: false}], 
-               name: "TAG Well", curve: false},
+               { x: 230, y: 400, name: "TG", well: true, bidirectional: false}], 
+               name: "TG Well", curve: false},
     { points: [{ x: 480, y: 490, name: "3PG", bidirectional: false}, 
                { x: 365, y: 490, name: "SER", well: false, bidirectional: false}], 
                name: "SER.eff Path", curve: false},
@@ -363,8 +361,8 @@ const pathsData = [
                name: "CIT to OAA", curve: true},
     { points: [{ x: 620, y: 880, bidirectional: false},
                { x: 800, y: 890, name: "ACECOA.c", bidirectional: false},
-               { x: 970, y: 890, name: "ACECOA.eff", well: true, bidirectional: false}],
-               name: "CIT to ACECOA.eff", curve: false},
+               { x: 970, y: 890, name: "Fatty Acids", well: true, bidirectional: false}],
+               name: "CIT to Fatty Acids", curve: false},
     { points: [{ x: 750, y: 1090, name: "ICIT", bidirectional: true},
                { x: 600, y: 1090, name: "GYLX", bidirectional: false},
                { x: 450, y: 1090, name: "MAL", bidirectional: false}],
@@ -401,9 +399,9 @@ const SignificantCoordinates = {
     "E4P": {x: 830, y: 360},
     "S7P": {x: 830, y: 200},
     "NA": {x: 800, y: 50},
-    "WALL.eff": {x: 290, y: 50},
-    "MAN.eff": {x: 180, y: 230},
-    "TAG": {x: 230, y: 400},
+    "WALL": {x: 290, y: 50},
+    "MAN": {x: 180, y: 230},
+    "TG": {x: 230, y: 400},
     "SER": {x: 365, y: 490},
     "SER.eff": {x: 365, y: 570},
     "GLY": {x: 230, y: 490},
@@ -418,7 +416,7 @@ const SignificantCoordinates = {
     "GLU.ext": {x: 830, y: 1260},
     "SUCC": {x: 600, y: 1240},
     "AKG": {x: 706.0660171779821, y: 1196.066017177982},
-    "ACECOA.eff": {x: 970, y: 890},
+    "Fatty Acids": {x: 970, y: 890},
     "GYLX": {x: 600, y: 1090},
     "MAL": {x: 450, y: 1090},
     "ACECOA.m": {x: 555, y: 1040},
@@ -509,10 +507,14 @@ function cleanupAllDots() {
     });
 }
 
-// Modify the animatePath function
+// Modify the animatePath function to better handle flux values
 function animatePath(pathData, fluxValue, pathIndex, callback) {
-    // Reduce the maximum number of dots but keep enough for smooth animation
-    const numberOfDots = Math.min(300, Math.max(1, Math.round(fluxValue || 1)));
+    // Scale the flux value to get a reasonable number of dots
+    // Use raw flux value to determine number of dots - scale it appropriately
+    const scaleFactor = 2;  // Adjust this value to control overall dot density
+    const numberOfDots = Math.min(300, Math.max(5, Math.round((fluxValue || 1) * scaleFactor)));
+    
+    console.log(`Path ${pathIndex} - Flux: ${fluxValue}, Dots: ${numberOfDots}`); // Debugging
     
     const path = svg.append("path")
         .datum(pathData.points)
@@ -548,7 +550,7 @@ function animatePath(pathData, fluxValue, pathIndex, callback) {
 
     // Use object pooling for dots
     const dotPool = [];
-    const maxActiveDots = Math.min(50, numberOfDots); // Increased from 30 to 50
+    const maxActiveDots = Math.min(70, numberOfDots); // Increased from 50 to 70
 
     function createDot() {
         const dot = svg.append("circle")
@@ -673,7 +675,7 @@ function stopAnimation() {
     cleanupAllDots();
 }
 
-// Modify the startAnimation function
+// Modify the startAnimation function to better map flux values to paths
 function startAnimation(pathsData, fluxValues = []) {
     if (!Array.isArray(pathsData)) {
         console.error("pathsData is not an array:", pathsData);
@@ -803,21 +805,63 @@ function separateParts(molecule, parts, pathsData, reactionType) {
     }
 }
 
+// Modify the startPath function to better map flux values to paths
 function startPath(allMolecules) {
     if (!Array.isArray(allMolecules)) {
         console.error("allMolecules is not an array:", allMolecules);
         return;
     }
 
-    let fluxValues = [];
-
+    // Create a mapping of reaction names to flux values
+    const fluxMap = new Map();
+    
     for (const molecule of allMolecules) {
-        fluxValues.push(parseFloat(molecule.fluxValue));
+        const reaction = molecule.reaction;
+        const flux = parseFloat(molecule.fluxValue);
+        
+        // Store in map
+        fluxMap.set(reaction, flux);
+        
+        // Also store the individual components
+        if (reaction.includes('->')) {
+            const [left, right] = reaction.split('->').map(s => s.trim());
+            fluxMap.set(left, flux);
+            fluxMap.set(right, flux);
+        } else if (reaction.includes('<->')) {
+            const [left, right] = reaction.split('<->').map(s => s.trim());
+            fluxMap.set(left, flux);
+            fluxMap.set(right, flux);
+        }
     }
 
-    // Start the animation directly here
+    // Generate flux values array that corresponds to pathsData
+    let fluxValues = pathsData.map((path, index) => {
+        // Try to match path to a flux value
+        if (path.name && fluxMap.has(path.name)) {
+            return fluxMap.get(path.name);
+        }
+        
+        // If no direct match, try to match by start and end points
+        if (path.points && path.points.length >= 2) {
+            const start = path.points[0].name;
+            const end = path.points[path.points.length - 1].name;
+            
+            if (start && end) {
+                const key = `${start} -> ${end}`;
+                if (fluxMap.has(key)) {
+                    return fluxMap.get(key);
+                }
+            }
+        }
+        
+        // Default to 50 if no match (adjust as needed)
+        return 50;
+    });
+
+    console.log("Flux values for paths:", fluxValues); // Debug output
+
+    // Start the animation with the mapped flux values
     if (pathsData && Array.isArray(pathsData)) {
-        console.log("Starting animation with pathsData:", pathsData);
         startAnimation(pathsData, fluxValues);
     } else {
         console.error("pathsData is not available:", pathsData);

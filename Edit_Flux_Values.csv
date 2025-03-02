@@ -1,11 +1,11 @@
-﻿Reaction Name,Reaction,Flux Value,Type of Reaction,Comments
+﻿Reaction Name,Reaction,FluxValue,Type of Reaction,Comments
 Vhk net,GLC.ext -> G6P,108.0105,Free,
 Vhk exch,GLC.ext -> G6P,0.3794,Free,
-Vwall,G6P -> WALL.eff,44.9639,Sink,
+Vwall,G6P -> WALL,44.9639,Sink,
 Vpgi net,G6P -> F6P,25.3747,Free,
 Vpgi exch,G6P -> F6P,1.00E+07,Free,This means that reverse flux cannot be calculated
-Vman net,F6P -> MAN.eff,12.627,Free,
-Vman exch,F6P -> MAN.eff,232.8252,Free,
+Vman net,F6P -> MAN,12.627,Free,
+Vman exch,F6P -> MAN,232.8252,Free,
 VGLC.extup,GLC.ext.ext -> GLC.ext,108.0105,Source,
 Vald net,FBP -> TP + TP,36.6907,Free,
 Vald exch,FBP -> TP + TP,520.4747,Free,
@@ -71,7 +71,7 @@ Vglueff,GLU -> GLU.eff,6.0206,Sink,
 Vgdh net,GLU -> AKG,60.5203,Free,
 Vgdh exch,GLU -> AKG,559.1478,Free,
 Vfas1,GLYP -> GLYP.eff,1.5878,Sink,!!FROM HERE DOWN THE NEW EXCEL SHEET DOES NOT HAVE THESE!!
-Vfas2,ACECOA.c -> ACECOA.eff,41.4191,Sink,
+Vfas2,ACECOA.c -> Fatty Acids,41.4191,Sink,
 Vmaneff,MAN -> MAN.eff,12.627,Sink,
 Vpyrim,CO2 + ASP + P5P -> PYRIM + CO2,0.4141,Sink,Sum Vpyrim and Vpurine for Vna
 Vpurine,CH4 + GLY + CO2 + CH4 + P5P -> PUR,0.4141,Sink,Sum Vpyrim and Vpurine for Vna
