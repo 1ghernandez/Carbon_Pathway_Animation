@@ -34,7 +34,7 @@ The Carbon Pathways Animation visualizes how carbon molecules move through diffe
 
 ## Usage
 
-1. Open the webpage
+1. Open the webpage: https://1ghernandez.github.io/Carbon_Pathway_Animation/ 
 2. Click "Start Animation" to begin the visualization
 3. Use "Pause" to freeze the animation at any point
 4. Use "Stop" to reset the animation
