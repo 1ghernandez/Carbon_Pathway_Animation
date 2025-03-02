@@ -283,10 +283,6 @@ const pathsData = [
                name: "Green Path-D", curve: true }, 
     { points: [{ x: 670, y: 100, name: "P5P", bidirectional: false}],
                name: "Green Path-E", curve: false }, 
-    { points: [{ x: 670, y: 100, bidirectional: false}, 
-               { x: 760, y: 50, bidirectional: false}, 
-               { x: 800, y: 50, name: "NA", well: true, bidirectional: false}], 
-               name: "Green Path-F", curve: false}, 
     { points: [{ x: 480, y: 100, name: "G6P", bidirectional: false}, 
                { x: 290, y: 100, bidirectional: false}, 
                { x: 290, y: 50, name: "WALL", well: true, bidirectional: false}], 
@@ -321,9 +317,8 @@ const pathsData = [
     { points: [{ x: 230, y: 600, name: "THR", bidrectional: false},
                { x: 50, y: 720, bidirectional: false},
                { x: 50, y: 810, bidirectional: false},
-               { x: 230, y: 1090, name: "PROCOA", bidirectional: false},
+               { x: 230, y: 1090, bidirectional: false},
                { x: 365, y: 1200, name: "METCIT", bidirectional: false},
-               { x: 415, y: 1235, name: "IMETCIT",bidirectional: true},
                { x: 500, y: 1280, bidirectional: true},
                { x: 600, y: 1240, name: "SUCC", bidirectional: false}],
                 name: "THR to SUCC", curve: true}, 
@@ -349,9 +344,7 @@ const pathsData = [
                { x: 285, y: 990, bidirectional: false},
                { x: 480, y: 875, name: "PYR.m", bidirectional: false}],
                name: "MAL to PYR.m", curve: true},
-    { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false}, 
-               { x: 450, y: 940, bidirectional: false},
-               { x: 493.93398282201787, y: 983.9339828220179, name: "OAA", bidirectional: false}],
+    { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false}],
                name: "PYR.m to OAA", curve: true},
     { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false}],
                name: "PYR.m to LEU", curve: false},
@@ -398,7 +391,6 @@ const SignificantCoordinates = {
     "TP2": {x: 670, y: 200, greenpath: true},
     "E4P": {x: 830, y: 360},
     "S7P": {x: 830, y: 200},
-    "NA": {x: 800, y: 50},
     "WALL": {x: 290, y: 50},
     "MAN": {x: 180, y: 230},
     "TG": {x: 230, y: 400},
@@ -407,9 +399,7 @@ const SignificantCoordinates = {
     "GLY": {x: 230, y: 490},
     "THR": {x: 230, y: 600},
     "ASP": {x: 230, y: 720},
-    "PROCOA": {x: 230, y: 1090},
     "METCIT": {x: 365, y: 1200},
-    "IMETCIT": {x: 415, y: 1235},
     "OAA": {x: 493.93398282201787, y: 983.9339828220179, oaa2: false},
     "GLU": {x: 830, y: 1196.066017177982},
     "ARG": {x: 940, y: 1196.066017177982},
@@ -507,14 +497,17 @@ function cleanupAllDots() {
     });
 }
 
-// Modify the animatePath function to better handle flux values
-function animatePath(pathData, fluxValue, pathIndex, callback) {
-    // Scale the flux value to get a reasonable number of dots
-    // Use raw flux value to determine number of dots - scale it appropriately
-    const scaleFactor = 2;  // Adjust this value to control overall dot density
-    const numberOfDots = Math.min(300, Math.max(5, Math.round((fluxValue || 1) * scaleFactor)));
-    
-    console.log(`Path ${pathIndex} - Flux: ${fluxValue}, Dots: ${numberOfDots}`); // Debugging
+// Animation configuration constants
+const BASE_ANIMATION_DURATION = 5000; // Base duration in ms - all animations will take this long
+const ANIMATION_LOOP_TIME = 15000;    // Overall loop time in ms (15 seconds)
+const MIN_DOTS = 3;                   // Minimum number of dots on any path
+const MAX_DOTS = 30;                  // Maximum number of dots on any path
+const DOT_MULTIPLIER = 35;            // Multiplier for normalized value to determine dot count
+
+// Modify the animatePath function to ensure all paths complete at the same time
+function animatePath(pathData, normalizedValue, pathIndex, callback) {
+    // All paths should take the same amount of time to complete
+    const animationDuration = BASE_ANIMATION_DURATION;
     
     const path = svg.append("path")
         .datum(pathData.points)
@@ -547,48 +540,37 @@ function animatePath(pathData, fluxValue, pathIndex, callback) {
 
     const pathNode = path.node();
     const totalLength = pathNode.getTotalLength();
-
-    // Use object pooling for dots
-    const dotPool = [];
-    const maxActiveDots = Math.min(70, numberOfDots); // Increased from 50 to 70
-
-    function createDot() {
+    
+    // Calculate number of dots based on normalized value (higher = more dots)
+    // Scale to reasonable range between MIN_DOTS and MAX_DOTS
+    const numberOfDots = Math.min(MAX_DOTS, 
+                          Math.max(MIN_DOTS, 
+                          Math.round(normalizedValue * DOT_MULTIPLIER)));
+    
+    console.log(`Path ${pathIndex} - Normalized: ${normalizedValue}, Dots: ${numberOfDots}`);
+    
+    // Create dots with even spacing along the path
+    for (let i = 0; i < numberOfDots; i++) {
         const dot = svg.append("circle")
             .attr("r", 7)
             .attr("fill", `url(#${gradientId})`)
             .attr("class", "animation-dot")
             .attr("data-path-index", pathIndex);
-        dotPool.push(dot);
-        return dot;
-    }
-
-    let currentDotIndex = 0;
-    
-    function animateNextDot() {
-        if (!animationRunning || currentDotIndex >= numberOfDots) {
-            if (currentDotIndex >= numberOfDots) {
-                // Wait for all transitions to complete before cleanup
-                setTimeout(() => {
-                    dotPool.forEach(dot => {
-                        if (dot) {
-                            dot.interrupt();
-                            dot.remove();
-                        }
-                    });
-                    dotPool.length = 0;
-                    path.remove();
-                    if (callback) callback();
-                }, animationDuration);
-            }
-            return;
-        }
-
-        const dot = createDot();
+            
+        // Position dot at start of path
         const startPoint = pathNode.getPointAtLength(0);
         dot.attr("cx", startPoint.x)
            .attr("cy", startPoint.y);
-
-        dot.transition()
+        
+        currentDots.add(dot.node());
+        
+        // Delay start based on dot position in sequence
+        const delayTime = (i / numberOfDots) * (ANIMATION_LOOP_TIME - animationDuration);
+        
+        // All dots travel at speed proportional to path length 
+        // so they all finish at the same time
+        const transition = dot.transition()
+            .delay(delayTime)  // Space out dot starts evenly
             .duration(animationDuration)
             .ease(d3.easeLinear)
             .tween("pathTween", () => {
@@ -596,87 +578,24 @@ function animatePath(pathData, fluxValue, pathIndex, callback) {
                     if (!animationRunning) return;
                     const point = pathNode.getPointAtLength(t * totalLength);
                     return dot.attr("cx", point.x)
-                            .attr("cy", point.y);
+                             .attr("cy", point.y);
                 };
             })
             .on("end", () => {
                 if (!isPaused) {
-                    // Only remove dot after ensuring it reached the end
-                    const endPoint = pathNode.getPointAtLength(totalLength);
-                    const currentX = parseFloat(dot.attr("cx"));
-                    const currentY = parseFloat(dot.attr("cy"));
-                    
-                    if (Math.abs(currentX - endPoint.x) < 1 && 
-                        Math.abs(currentY - endPoint.y) < 1) {
-                        dot.remove();
-                        const index = dotPool.indexOf(dot);
-                        if (index > -1) {
-                            dotPool.splice(index, 1);
-                        }
-                    }
-                    
-                    currentDotIndex++;
-                    animateNextDot();
+                    currentDots.delete(dot.node());
+                    dot.remove();
                 }
             });
+            
+        activeTransitions.push(transition);
     }
-
-    // Start initial dots with slightly increased delay
-    for (let i = 0; i < maxActiveDots; i++) {
-        setTimeout(() => animateNextDot(), i * (animationDelay + 50));
-    }
+    
+    return path;
 }
 
-// Modify the pauseAnimation function
-function pauseAnimation() {
-    isPaused = true;
-    animationRunning = false;
-    
-    // Just stop the animation without removing dots
-    if (currentAnimation) {
-        clearTimeout(currentAnimation);
-    }
-}
-
-// Modify the stopAnimation function
-function stopAnimation() {
-    isPaused = false;
-    animationRunning = false;
-    
-    if (currentAnimation) {
-        clearTimeout(currentAnimation);
-        currentAnimation = null;
-    }
-    
-    // Clear all animation dots
-    svg.selectAll(".animation-dot").remove();
-    
-    // Clear all gradients created for the animation
-    svg.selectAll("defs").selectAll("[id^='sphereGradient-']").remove();
-    
-    // Clear all temporary paths
-    svg.selectAll("path").each(function() {
-        const path = d3.select(this);
-        if (!path.attr("stroke") || path.attr("stroke") === "none") {
-            path.remove();
-        }
-    });
-    
-    // Clear all tracked collections
-    currentDots.clear();
-    activeTransitions = [];
-    pausedDots = [];
-    
-    // Interrupt any remaining transitions
-    d3.selectAll(".animation-dot").interrupt();
-    
-    // Additional cleanup for edge dots
-    cleanupEdgeDots();
-    cleanupAllDots();
-}
-
-// Modify the startAnimation function to better map flux values to paths
-function startAnimation(pathsData, fluxValues = []) {
+// Modify startAnimation to use a loop timer
+function startAnimation(pathsData, normalizedValues = []) {
     if (!Array.isArray(pathsData)) {
         console.error("pathsData is not an array:", pathsData);
         return;
@@ -684,28 +603,109 @@ function startAnimation(pathsData, fluxValues = []) {
 
     if (!isPaused) {
         stopAnimation();
-        cleanupEdgeDots();  // Additional cleanup
+        cleanupEdgeDots();
     }
     
     animationRunning = true;
     isPaused = false;
+    
+    // Store all paths created for cleanup
+    const activePaths = [];
 
     function animate() {
         if (!animationRunning) return;
+        
+        // Clear previous dots and paths
+        clearActiveDots();
+        
+        activePaths.forEach(path => path.remove());
+        activePaths.length = 0;
 
+        // Start animation for each path with its normalized value
         pathsData.forEach((pathData, index) => {
-            const fluxValue = fluxValues[index] || 1;
-            animatePath(pathData, fluxValue, index);
+            const normalizedValue = normalizedValues[index] || 0.5; // Default to middle value
+            const path = animatePath(pathData, normalizedValue, index);
+            activePaths.push(path);
         });
 
+        // Loop the animation
         currentAnimation = setTimeout(() => {
             if (animationRunning) {
                 animate();
             }
-        }, animationDuration + (pathsData.length * animationDelay));
+        }, ANIMATION_LOOP_TIME);
     }
 
     animate();
+}
+
+// Helper function to clear all active dots
+function clearActiveDots() {
+    svg.selectAll(".animation-dot").remove();
+    currentDots.clear();
+}
+
+// Modify the startPath function to use normalized values
+function startPath(allMolecules) {
+    if (!Array.isArray(allMolecules)) {
+        console.error("allMolecules is not an array:", allMolecules);
+        return;
+    }
+
+    // Create a mapping of reaction names to normalized values
+    const normalizedMap = new Map();
+    
+    for (const molecule of allMolecules) {
+        const reaction = molecule.reaction;
+        const normalized = parseFloat(molecule.normalized) || 0.5;
+        
+        // Store in map
+        normalizedMap.set(reaction, normalized);
+        
+        // Also store individual components
+        if (reaction.includes('->')) {
+            const [left, right] = reaction.split('->').map(s => s.trim());
+            normalizedMap.set(left, normalized);
+            normalizedMap.set(right, normalized);
+        } else if (reaction.includes('<->')) {
+            const [left, right] = reaction.split('<->').map(s => s.trim());
+            normalizedMap.set(left, normalized);
+            normalizedMap.set(right, normalized);
+        }
+    }
+
+    // Generate normalized values array for each path
+    let normalizedValues = pathsData.map((path, index) => {
+        // Try to match path to a normalized value
+        if (path.name && normalizedMap.has(path.name)) {
+            return normalizedMap.get(path.name);
+        }
+        
+        // If no direct match, try to match by start and end points
+        if (path.points && path.points.length >= 2) {
+            const start = path.points[0].name;
+            const end = path.points[path.points.length - 1].name;
+            
+            if (start && end) {
+                const key = `${start} -> ${end}`;
+                if (normalizedMap.has(key)) {
+                    return normalizedMap.get(key);
+                }
+            }
+        }
+        
+        // Default to mid-range if no match
+        return 0.5;
+    });
+
+    console.log("Normalized values for paths:", normalizedValues);
+
+    // Start the animation with normalized values
+    if (pathsData && Array.isArray(pathsData)) {
+        startAnimation(pathsData, normalizedValues);
+    } else {
+        console.error("pathsData is not available:", pathsData);
+    }
 }
 
 // Modify the processMolecules function
@@ -805,69 +805,6 @@ function separateParts(molecule, parts, pathsData, reactionType) {
     }
 }
 
-// Modify the startPath function to better map flux values to paths
-function startPath(allMolecules) {
-    if (!Array.isArray(allMolecules)) {
-        console.error("allMolecules is not an array:", allMolecules);
-        return;
-    }
-
-    // Create a mapping of reaction names to flux values
-    const fluxMap = new Map();
-    
-    for (const molecule of allMolecules) {
-        const reaction = molecule.reaction;
-        const flux = parseFloat(molecule.fluxValue);
-        
-        // Store in map
-        fluxMap.set(reaction, flux);
-        
-        // Also store the individual components
-        if (reaction.includes('->')) {
-            const [left, right] = reaction.split('->').map(s => s.trim());
-            fluxMap.set(left, flux);
-            fluxMap.set(right, flux);
-        } else if (reaction.includes('<->')) {
-            const [left, right] = reaction.split('<->').map(s => s.trim());
-            fluxMap.set(left, flux);
-            fluxMap.set(right, flux);
-        }
-    }
-
-    // Generate flux values array that corresponds to pathsData
-    let fluxValues = pathsData.map((path, index) => {
-        // Try to match path to a flux value
-        if (path.name && fluxMap.has(path.name)) {
-            return fluxMap.get(path.name);
-        }
-        
-        // If no direct match, try to match by start and end points
-        if (path.points && path.points.length >= 2) {
-            const start = path.points[0].name;
-            const end = path.points[path.points.length - 1].name;
-            
-            if (start && end) {
-                const key = `${start} -> ${end}`;
-                if (fluxMap.has(key)) {
-                    return fluxMap.get(key);
-                }
-            }
-        }
-        
-        // Default to 50 if no match (adjust as needed)
-        return 50;
-    });
-
-    console.log("Flux values for paths:", fluxValues); // Debug output
-
-    // Start the animation with the mapped flux values
-    if (pathsData && Array.isArray(pathsData)) {
-        startAnimation(pathsData, fluxValues);
-    } else {
-        console.error("pathsData is not available:", pathsData);
-    }
-}
-
 processMolecules().catch(error => {
     console.error("Error in processMolecules:", error);
 });
@@ -887,4 +824,55 @@ function updateProgress(progress) {
 function showLoading(show) {
     const overlay = document.querySelector('.loading-overlay');
     overlay.style.display = show ? 'flex' : 'none';
+}
+
+// Add the missing stopAnimation function
+function stopAnimation() {
+    isPaused = false;
+    animationRunning = false;
+    
+    if (currentAnimation) {
+        clearTimeout(currentAnimation);
+        currentAnimation = null;
+    }
+    
+    // Clear all animation dots
+    svg.selectAll(".animation-dot").remove();
+    
+    // Clear all gradients created for the animation
+    svg.selectAll("defs").selectAll("[id^='sphereGradient-']").remove();
+    
+    // Clear all temporary paths
+    svg.selectAll("path").each(function() {
+        const path = d3.select(this);
+        if (!path.attr("stroke") || path.attr("stroke") === "none") {
+            path.remove();
+        }
+    });
+    
+    // Clear all tracked collections
+    currentDots.clear();
+    activeTransitions = [];
+    pausedDots = [];
+    
+    // Interrupt any remaining transitions
+    d3.selectAll(".animation-dot").interrupt();
+    
+    // Additional cleanup for edge dots
+    cleanupEdgeDots();
+    cleanupAllDots();
+}
+
+// Also add the missing pauseAnimation function to make sure it matches our new approach
+function pauseAnimation() {
+    isPaused = true;
+    animationRunning = false;
+    
+    // Just stop the animation without removing dots
+    if (currentAnimation) {
+        clearTimeout(currentAnimation);
+    }
+    
+    // Interrupt all transitions
+    d3.selectAll(".animation-dot").interrupt();
 }
