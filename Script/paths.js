@@ -101,7 +101,7 @@ svg.append("text")
 
 // ER
 svg.append("image")
-    .attr("href", "ER.svg")    // Specify the path to your image
+    .attr("href", "./Images/ER.svg")    // Specify the path to your image
     .attr("x", -10)            // Position of the image
     .attr("y", 220)            // Position of the image
     .attr("width", 550)       // Set the width of the image
@@ -120,7 +120,7 @@ svg.append("text")
 
 // Mitochondria
 svg.append("image")
-    .attr("href", "Mitochondria.svg")    // Specify the path to your image
+    .attr("href", "./Images/Mitochondria.svg")    // Specify the path to your image
     .attr("x", -430)            // Position of the image
     .attr("y", -380)            // Position of the image
     .attr("width", 2200)       // Set the width of the image
