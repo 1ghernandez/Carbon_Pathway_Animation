@@ -223,20 +223,20 @@ function generateCirclePath(cx, cy, r) {
 }
 
 let currentPathIndex = 0;  // Keep track of the current path index
-const animationDuration = 3000;  // Duration for each path animation in milliseconds
+const animationDuration = 2000;  // Duration for each path animation in milliseconds
 const animationDelay = 300;  // Delay between dots in milliseconds
         
 well = false;
 OAA2 = false;
 const pathsData = [
     { points: [{ x: 480, y: -50, name: "GLC.ext", bidirectional: false},      // First point
-               { x: 480, y: 100, name: "G6P" }, // Bidirectional?               Second point, and so on... 
+               { x: 480, y: 100, name: "G6P" }, 
                { x: 480, y: 230, name: "F6P", bidirectional: true},   
                { x: 480, y: 400, name: "TP", bidirectional: true},   
                { x: 480, y: 490, name: "3PG", bidirectional: true},      
                { x: 480, y: 620, name: "PEP", bidirectional: false},      
                { x: 480, y: 750, name: "PYR.c", bidirectional: false}, 
-               { x: 480, y: 875, name: "PYR.m"}], // Bidirectional?              final point 
+               { x: 480, y: 875, name: "PYR.m"}], // final point 
                name: "Blue Path", curve: false },
     { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false},
                { x: 600, y: 940, name: "CIT", bidirectional: true}], 
@@ -446,6 +446,14 @@ pathsData.forEach((pathData, index) => {
         .attr("font-family", "arial")
         .attr("fill", "black")
         .text(d => d.name);  // Use the full name, including suffix
+
+    // Add a special debug log for the TG Well path
+    if (pathData.name === "TG Well" || (pathData.points && 
+        pathData.points.length >= 2 && 
+        pathData.points[0].name === "TP" && 
+        pathData.points[pathData.points.length-1].name === "TG")) {
+        console.log(`DEBUG: Found TG Well path at index ${index}`, pathData);
+    }
 });
 
 console.log("significantPoints:", pathsData); // for debugging
@@ -465,17 +473,24 @@ let currentDots = new Set();  // Add this back - Keep track of active animation 
 
 // Animation configuration constants
 const BASE_ANIMATION_DURATION = 2000;  // Base duration in ms
-const ANIMATION_LOOP_TIME = 30000;     // Overall loop time in ms (15 seconds)
+const ANIMATION_LOOP_TIME = 20000;     // Overall loop time in ms 
 const FIXED_DOT_SPACING = 40;          // Fixed spacing between dots in pixels
 const MIN_DOTS = 3;                    // Minimum number of dots per path
 
 // Define stopAnimation as a standalone function
 function stopAnimation() {
+    // Set the flag first to prevent any new animations
     animationRunning = false;
+    
+    // Important: Clear the master timeout first
+    if (currentAnimation) {
+        clearTimeout(currentAnimation);
+        currentAnimation = null;
+    }
     
     // Clear all intervals
     dotIntervals.forEach(clearInterval);
-    dotIntervals.length = 0;
+    dotIntervals = [];
     
     // Remove all animation dots
     svg.selectAll(".animation-dot").interrupt().remove();
@@ -483,48 +498,69 @@ function stopAnimation() {
     
     // Remove all paths
     activePaths.forEach(path => path.remove());
-    activePaths.length = 0;
+    activePaths = [];
+
+    console.log("Animation completely stopped and cleaned up");
 }
 
-// Modify startAnimation to ensure all dots continue for the full 30 seconds
+// Modify startAnimation to use more consistent timeout handling
 function startAnimation(pathsData, normalizedValues = []) {
-    if (!Array.isArray(pathsData)) {
-        console.error("pathsData is not an array:", pathsData);
-        return;
-    }
-
-    // Clean up any previous animation
-    if (!isPaused) {
-        stopAnimation();
+    // First completely reset animation state
+    // Clear any lingering state
+    if (currentAnimation) {
+        clearTimeout(currentAnimation);
+        currentAnimation = null;
     }
     
+    // Ensure all intervals are cleared
+    dotIntervals.forEach(clearInterval);
+    dotIntervals = [];
+    
+    // Clear all existing dots
+    svg.selectAll(".animation-dot").interrupt().remove();
+    currentDots.clear();
+    
+    // Remove existing paths
+    activePaths.forEach(path => path.remove());
+    activePaths = [];
+    
+    // Only now set animation to running
     animationRunning = true;
     isPaused = false;
     
-    // Reset arrays
-    dotIntervals = [];
-    activePaths = [];
+    console.log("Starting fresh animation cycle at", new Date().toLocaleTimeString());
     
-    console.log("Starting new animation cycle at", new Date().toLocaleTimeString());
+    // Using fixed spacing for consistent visual appearance
+    const GLOBAL_SPACING = 60; // Pixels between dots
+    const ANIMATION_CYCLE_TIME = 30000; // 30 seconds
     
-    // Calculate a global emission rate to maintain consistent spacing across ALL paths
-    const GLOBAL_SPACING = 60; // Larger value = more spacing between dots
-    const ANIMATION_CYCLE_TIME = 30000; // Change to 30 seconds
+    // Track the master animation cycle
+    let cycleStartTime = Date.now();
     
-    // Create paths and start emitting dots
+    // Create all paths first
     pathsData.forEach((pathData, index) => {
-        const normalizedValue = normalizedValues[index] || 0.5; // Default to middle value
+        let normalizedValue = normalizedValues[index] || 0.5;
         
-        // Create the path
+        // Important fix: Set a higher minimum speed for very slow paths
+        // This ensures even the slowest paths (like TP -> TG) are visible
+        const MIN_SPEED = 0.03; // Increase from 0.01 to 0.03
+        normalizedValue = Math.max(MIN_SPEED, normalizedValue);
+        
+        // Log for debugging TP -> TG path
+        if (pathData.name === "TG Well") {
+            console.log(`DEBUG: Processing TG Well path with normalized value: ${normalizedValue}`);
+        }
+        
+        // Create path element (existing code remains the same)
         const path = svg.append("path")
             .datum(pathData.points)
             .attr("d", pathData.curve ? lineGeneratorCurved : lineGeneratorStraight)
             .attr("fill", "none")
             .attr("stroke", "none");
-            
+        
         activePaths.push(path);
         
-        // Create gradient definition
+        // Create gradient (existing code remains the same)
         const gradientId = `sphereGradient-${index}`;
         if (!svg.select(`#${gradientId}`).node()) {
             const gradient = svg.append("defs")
@@ -552,30 +588,28 @@ function startAnimation(pathsData, normalizedValues = []) {
         
         // Calculate dot speed based on normalized value
         const speedFactor = Math.max(0.01, normalizedValue);
-        
-        // Calculate animation duration - inversely proportional to speed
         const animationDuration = BASE_ANIMATION_DURATION / speedFactor;
         
-        // Calculate emission interval that ensures consistent dot spacing visually
-        // This is now based on how many complete trips a dot can make in the cycle time
-        const tripsPerCycle = ANIMATION_CYCLE_TIME / animationDuration;
-        const dotsNeeded = Math.max(MIN_DOTS, Math.floor(totalLength / GLOBAL_SPACING));
+        // Calculate exactly how many dots we need for this path
+        const dotsNeeded = Math.max(MIN_DOTS, Math.ceil(totalLength / GLOBAL_SPACING));
         
-        // Ensure continuous emission by looping dots
-        const emissionInterval = animationDuration / dotsNeeded;
+        console.log(`Path ${index} - Name: ${pathData.name}, Normalized: ${normalizedValue}, Duration: ${animationDuration}ms, Dots: ${dotsNeeded}, Length: ${totalLength}`);
         
-        console.log(`Path ${index} - Name: ${pathData.name}, Normalized: ${normalizedValue}, Duration: ${animationDuration}ms, Trips: ${tripsPerCycle.toFixed(2)}, Dots: ${dotsNeeded}, Length: ${totalLength}`);
-        
-        // Function to create and animate a dot
-        function createDot() {
-            if (!animationRunning) return;
+        // We'll use a single interval for each path, with consistent timing
+        // This ensures dots are always created at the exact same rate
+        const pathInterval = setInterval(() => {
+            if (!animationRunning) {
+                clearInterval(pathInterval);
+                return;
+            }
             
+            // Create a new dot
             const dot = svg.append("circle")
                 .attr("r", 7)
                 .attr("fill", `url(#${gradientId})`)
                 .attr("class", "animation-dot")
                 .attr("data-path-index", index);
-                
+            
             // Position dot at start of path
             const startPoint = pathNode.getPointAtLength(0);
             dot.attr("cx", startPoint.x)
@@ -583,9 +617,9 @@ function startAnimation(pathsData, normalizedValues = []) {
             
             currentDots.add(dot.node());
             
-            // Animate the dot along the path
+            // Animate the dot along the path with exact timing
             const transition = dot.transition()
-                .duration(animationDuration) // Speed based on normalized value
+                .duration(animationDuration)
                 .ease(d3.easeLinear)
                 .tween("pathTween", () => {
                     return (t) => {
@@ -599,39 +633,56 @@ function startAnimation(pathsData, normalizedValues = []) {
                     if (!isPaused) {
                         currentDots.delete(dot.node());
                         dot.remove();
-                        
-                        // Immediately create a new dot when one finishes
-                        // This ensures continuous animation for the full duration
-                        if (animationRunning) {
-                            createDot();
-                        }
                     }
                 });
-                
+            
             activeTransitions.push(transition);
-        }
+            
+        }, animationDuration / dotsNeeded); // Perfect timing to maintain spacing
         
-        // Start initial dots
-        for (let i = 0; i < dotsNeeded; i++) {
-            setTimeout(() => {
-                if (animationRunning) {
-                    createDot();
-                }
-            }, i * emissionInterval);
-        }
+        dotIntervals.push(pathInterval);
     });
     
-    // Set a timeout to restart/stop the animation after 30 seconds
+    // Master timeout needs to be more resilient
     const animationTimeout = setTimeout(() => {
-        if (animationRunning && !isPaused) {
-            console.log("Animation cycle complete (30 seconds)");
+        // Only restart if this is still the current animation
+        if (animationRunning && !isPaused && currentAnimation === animationTimeout) {
+            console.log("Animation cycle complete - planned restart");
             
-            // Restart animation
-            stopAnimation();
-            startAnimation(pathsData, normalizedValues);
+            // Store current state
+            const wasRunning = animationRunning;
+            
+            // Complete cleanup
+            animationRunning = false;
+            
+            // Clear intervals first
+            dotIntervals.forEach(clearInterval);
+            dotIntervals = [];
+            
+            // Remove dots
+            svg.selectAll(".animation-dot").interrupt().remove();
+            currentDots.clear();
+            
+            // Remove paths
+            activePaths.forEach(path => path.remove());
+            activePaths = [];
+            
+            // Clear reference to this timeout
+            currentAnimation = null;
+            
+            // Wait longer to ensure complete cleanup
+            setTimeout(() => {
+                if (wasRunning) {
+                    console.log("Planned restart with fresh state");
+                    startAnimation(pathsData, normalizedValues);
+                }
+            }, 200); // Increased delay for more reliable cleanup
+        } else {
+            console.log("Animation cycle complete but not restarting (was manually stopped)");
         }
-    }, ANIMATION_CYCLE_TIME); // 30 second animation cycle
+    }, ANIMATION_LOOP_TIME);
     
+    // Store reference to the current animation timeout
     currentAnimation = animationTimeout;
     
     return stopAnimation;
@@ -655,20 +706,33 @@ function mapNormalizedValuesToPaths() {
         pathsData.forEach((path, index) => {
             let value = 0.5; // Default value
             
-            // Map specific paths based on their names or indices
-            if (path.name === "Green Path-sequence1") {
+            // Check exact path name
+            if (path.name === "TG Well") {
+                console.log("DEBUG: Found TG Well by name");
+                value = fluxMap["TP -> TG"] || 0.03; // Use a higher minimum value
+            } else if (path.name === "Green Path-sequence1") {
                 value = fluxMap["G6P -> P5P"] || 0.18;
             } else if (path.name === "Green Path-sequence2") {
                 value = fluxMap["P5P -> X5P"] || 0.11;
             } else if (path.name.match(/Green Path-sequence[4-8]/)) {
-                // Explicitly set Green Path-sequence4 through Green Path-sequence8 to 0.05
                 value = 0.05;
             } else if (path.name === "Green Path-sequence9") {
                 value = fluxMap["TP + S7P -> F6P + E4P"] || 0.06;
             } else if (path.name === "Green Path-sequence12") {
                 value = fluxMap["X5P + E4P -> F6P + TP"] || 0.05;
+            } else if (path.name === "TG Well") {
+                value = fluxMap["TP -> TG"] || 0.01;
+            } 
+            // If not matched by name, check by path points
+            else if (path.points && path.points.length >= 2) {
+                const startPoint = path.points[0];
+                const endPoint = path.points[path.points.length - 1];
+                
+                // Check for TP -> TG path specifically
+                if (startPoint.name === "TP" && endPoint.name === "TG") {
+                    value = fluxMap["TP -> TG"] || 0.01;
+                }
             }
-            // Add more mappings for other paths as needed
             
             normalizedValues[index] = value;
         });
@@ -728,13 +792,12 @@ function startPath(allMolecules) {
 
     // Generate normalized values array for each path
     let normalizedValues = pathsData.map((path, index) => {
-        // Apply explicit mappings first (these take precedence)
+        // First try exact path name matches
         if (path.name === "Green Path-sequence1") {
             return normalizedMap.get("G6P -> P5P") || 0.18;
         } else if (path.name === "Green Path-sequence2") {
             return normalizedMap.get("P5P -> X5P") || 0.11;
         } else if (path.name.match(/Green Path-sequence[4-8]/)) {
-            // Explicitly set Green Path-sequence4 through Green Path-sequence8 to 0.05
             return 0.05;
         } else if (path.name === "Green Path-sequence9") {
             return normalizedMap.get("TP + S7P -> F6P + E4P") || 0.06;
@@ -744,9 +807,22 @@ function startPath(allMolecules) {
             return normalizedMap.get("P5P + X5P -> S7P + TP") || 0.06;
         } else if (path.name === "Green Path-sequence12") {
             return normalizedMap.get("X5P + E4P -> F6P + TP") || 0.05;
+        } else if (path.name === "TG Well") {
+            return normalizedMap.get("TP -> TG") || 0.01;
         }
         
-        // Fall back to generic mappings if no explicit mapping
+        // If not matched by name, check by path points
+        if (path.points && path.points.length >= 2) {
+            const startPoint = path.points[0];
+            const endPoint = path.points[path.points.length - 1];
+            
+            // Check for TP -> TG path specifically
+            if (startPoint.name === "TP" && endPoint.name === "TG") {
+                return normalizedMap.get("TP -> TG") || 0.01;
+            }
+        }
+        
+        // Fall back to generic mappings if no match
         if (path.name && normalizedMap.has(path.name)) {
             return normalizedMap.get(path.name);
         }
