@@ -1,5 +1,3 @@
-// * Do the data points begin their path at different points?
-
 const svg = d3.select("#svgContainer");
 
 class Molecule {
@@ -10,7 +8,7 @@ class Molecule {
     }
 }
 
-// Load the CSV data and return a Promise
+// Load the CSV data and return a promise
 function loadMolecules() {
     return d3.csv("./ProvidedData/Flux_Values_for_animation.csv").then(function(data) {
         console.log("Raw CSV data:", data);  // Log raw CSV data DEBUGGING
@@ -230,129 +228,156 @@ well = false;
 OAA2 = false;
 const pathsData = [
     { points: [{ x: 480, y: -50, name: "GLC.ext", bidirectional: false},      // First point
-               { x: 480, y: 100, name: "G6P" }, 
-               { x: 480, y: 230, name: "F6P", bidirectional: true},   
-               { x: 480, y: 400, name: "TP", bidirectional: true},   
-               { x: 480, y: 490, name: "3PG", bidirectional: true},      
-               { x: 480, y: 620, name: "PEP", bidirectional: false},      
-               { x: 480, y: 750, name: "PYR.c", bidirectional: false}, 
-               { x: 480, y: 875, name: "PYR.m"}], // final point 
-               name: "Blue Path", curve: false },
+               { x: 480, y: 100, name: "G6P" }],
+               name: "GLC.ext -> G6P", curve: false },
+    { points: [ { x: 480, y: 100, name: "G6P" }, 
+                { x: 480, y: 230, name: "F6P", bidirectional: true}], 
+                name: "F6P -> TP", curve: false },
+    { points: [ { x: 480, y: 230, name: "F6P", bidirectional: true},   
+                { x: 480, y: 400, name: "TP", bidirectional: true}],
+                name: "TP -> 3PG", curve: false },
+    { points: [ { x: 480, y: 400, name: "TP", bidirectional: true},   
+                { x: 480, y: 490, name: "3PG", bidirectional: true}], // final point 
+                name: "3PG -> PEP", curve: false },
+    { points: [ { x: 480, y: 490, name: "3PG", bidirectional: true},      
+                { x: 480, y: 620, name: "PEP", bidirectional: false}], // final point 
+                name: "PEP -> PYR.c", curve: false },
+    { points: [ { x: 480, y: 620, name: "PEP", bidirectional: false},      
+                { x: 480, y: 750, name: "PYR.c", bidirectional: false}], // final point 
+                name: "PYR.c -> PYR.m", curve: false },
+    { points: [ { x: 480, y: 750, name: "PYR.c", bidirectional: false}, 
+                { x: 480, y: 875, name: "PYR.m"}], // final point 
+                name: "PYR.m -> CIT", curve: false },
     { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false},
                { x: 600, y: 940, name: "CIT", bidirectional: true}], 
-               name: "Red Path", curve: true }, 
+               name: "CIT -> ACECOA.c + OAA", curve: true }, 
     { points: generateCirclePath(circleData.cx, circleData.cy, circleData.r), 
                 name: "Circle Path", curve: true },  // Add the circle path}  
     { points: [{ x: 480, y: 100, name: "G6P", bidirectional: false}, 
                { x: 670, y: 100, name: "P5P", bidirectional: true}],
-               name: "Green Path-sequence1", curve: false }, 
-    { points: [{ x: 670, y: 100, name: "P5P", bidirectional: true}, 
+               name: "G6P -> P5P", curve: false }, 
+    { points: [ { x: 670, y: 100, name: "P5P", bidirectional: true}, 
                 { x: 830, y: 100, name: "X5P", bidirectional: true}], 
-                name: "Green Path-sequence2", curve: false },
+                name: "P5P -> X5P", curve: false },
     { points: [ { x: 830, y: 100, name: "X5P", bidirectional: true}, 
                 { x: 930, y: 100, bidirectional: false}], 
-                name: "Green Path-sequence4", curve: false }, 
+                name: "X5P + E4P -> F6P + TP", curve: false }, 
     { points: [ { x: 930, y: 100, bidirectional: false}, 
                 { x: 930, y: 400, bidirectional: false}],
-                name: "Green Path-sequence5", curve: false }, 
+                name: "X5P + E4P -> F6P + TP", curve: false }, 
     { points: [ { x: 930, y: 400, bidirectional: false}, 
                 { x: 620, y: 400, bidirectional: false}],
-                name: "Green Path-sequence6", curve: false }, 
+                name: "X5P + E4P -> F6P + TP", curve: false }, 
     { points: [ { x: 620, y: 400, bidirectional: false}, 
                 { x: 620, y: 200, bidirectional: false}],
-                name: "Green Path-sequence7", curve: false }, 
+                name: "X5P + E4P -> F6P + TP", curve: false }, 
     { points: [ { x: 620, y: 200, bidirectional: false}, 
                 { x: 670, y: 200, name: "TP", bidirectional: true}],
-                name: "Green Path-sequence8", curve: false }, 
+                name: "X5P + E4P -> F6P + TP", curve: false }, 
     { points: [ { x: 670, y: 200, name: "TP", bidirectional: true},
                 { x: 830, y: 360, name: "E4P", bidirectional: true}], 
-                name: "Green Path-sequence9", curve: false }, 
+                name: "TP + S7P -> F6P + E4P", curve: false }, 
     { points: [{ x: 670, y: 100, name: "P5P"},
-               { x: 830, y: 200, name: "S7P", bidirectional: true},
-               { x: 670, y: 360, name: "F6P", bidirectional: true}],
-                name: "Green Path-sequence10", curve: false }, 
+               { x: 830, y: 200, name: "S7P", bidirectional: true}],
+                name: "P5P + X5P -> S7P + TP", curve: false }, 
+    { points: [ { x: 830, y: 200, name: "S7P", bidirectional: true},
+                { x: 670, y: 360, name: "F6P", bidirectional: true}],
+                     name: "TP + S7P -> F6P + E4P", curve: false }, 
     { points: [{ x: 830, y: 100, name: "X5P", bidirectional: true},
                { x: 670, y: 200, name: "TP", bidirectional: true}],
-               name: "Green Path-sequence11", curve: false }, 
+               name: "X5P + E4P -> F6P + TP", curve: false }, 
     { points: [ { x: 830, y: 360, name: "E4P", bidirectional: true},
                 { x: 750, y: 420, bidirectional: false},
                 { x: 670, y: 360, name: "F6P", bidirectional: true}],
-                name: "Green Path-sequence12", curve: true }, 
+                name: "X5P + E4P -> F6P + TP", curve: true }, 
     { points: [{ x: 480, y: 100, name: "G6P", bidirectional: false}, 
                { x: 290, y: 100, bidirectional: false}, 
                { x: 290, y: 50, name: "WALL", well: true, bidirectional: false}], 
-               name: "WALL Well", curve: false}, 
+               name: "G6P -> WALL", curve: false}, 
     { points: [{ x: 480, y: 230, name: "F6P", bidirectional: false}, 
                { x: 180, y: 230, name: "MAN", well: true, bidirectional: false}], 
-               name: "MAN Well", curve: false}, 
+               name: "F6P -> MAN", curve: false}, 
     { points: [{ x: 480, y: 400, name: "TP", bidirectional: false}, 
                { x: 230, y: 400, name: "TG", well: true, bidirectional: false}], 
-               name: "TG Well", curve: false},
+               name: "TP -> TG", curve: false},
     { points: [{ x: 480, y: 490, name: "3PG", bidirectional: false}, 
                { x: 365, y: 490, name: "SER", well: false, bidirectional: false}], 
-               name: "SER.eff Path", curve: false},
+               name: "3PG -> SER", curve: false},
     { points: [{ x: 365, y: 490, name: "SER", bidirectional: true}, 
                { x: 230, y: 490, name: "GLY", well: false, bidirectional: false}], 
-               name: "GLY.eff Well", curve: false},
+               name: "SER -> GLY", curve: false},
     { points: [{ x: 230, y: 720, name: "ASP", bidirectional: false},
-               { x: 230, y: 600, name: "THR", bidrectional: false},
-               { x: 230, y: 490, name: "GLY", well: false, bidirectional: true}], 
-               name: "ASP to GLY", curve: false},
+               { x: 230, y: 600, name: "THR", bidrectional: false}], 
+               name: "ASP -> THR", curve: false},
+    { points: [{ x: 230, y: 600, name: "THR", bidrectional: false},
+                { x: 230, y: 490, name: "GLY", well: false, bidirectional: true}], 
+                name: "THR -> GLY", curve: false},
     { points: [{ x: 493.93398282201787, y: 983.9339828220179, name: "OAA", bidirectional: true},
                { x: 285, y: 983.9339828220179, bidirectional: true},
                { x: 285, y: 720, bidrectional: true},
                { x: 230, y: 720, name: "ASP", bidirectional: true}],
-               name: "ASP to OAA", curve: false},
+               name: "OAA -> ASP", curve: false},
     { points: [{ x: 230, y: 600, name: "THR", bidrectional: false},
                { x: 50, y: 720, bidirectional: false},
                { x: 50, y: 810, bidirectional: false},
                { x: 230, y: 1090, bidirectional: false},
-               { x: 365, y: 1200, name: "METCIT", bidirectional: false},
-               { x: 500, y: 1280, bidirectional: true},
-               { x: 600, y: 1240, name: "SUCC", bidirectional: false}],
-                name: "THR to SUCC", curve: true}, 
+               { x: 365, y: 1200, name: "METCIT", bidirectional: false}],
+                name: "THR + OAA -> METCIT", curve: true}, 
+    { points: [ { x: 365, y: 1200, name: "METCIT", bidirectional: false},
+                { x: 500, y: 1280, bidirectional: true},
+                { x: 600, y: 1240, name: "SUCC", bidirectional: false}],
+                    name: "METCIT -> PYR.m + SUCC", curve: true}, 
     { points: [{ x: 493.93398282201787, y: 983.9339828220179, name: "OAA", bidirectional: false},
                { x: 295, y: 1060, bidirectional: false},
                { x: 365, y: 1200, name: "METCIT", bidirectional: false}],
-               name: "OAA to METCIT", curve: true},
+               name: "OAA -> METCIT", curve: true},
     { points: [{ x: 500, y: 1265, bidirectional: false},
                { x: 500, y: 1220, name: "PYR.m", bidirectional: false}],
-                name: "Bottom PYRm Path", curve: false},
+                name: "MAL -> PYR.m", curve: false},
     { points: [{ x: 480, y: 620, name: "PEP", bidirectional: true},
                { x: 365, y: 620, bidirectional: true},
                { x: 365, y: 875, bidirectional: true},
                { x: 493.93398282201787, y: 983.9339828220179, name: "OAA", bidirectional: false}],
-               name: "PEP to OAA", curve: false},
+               name: "OAA -> PEP", curve: false},
     { points: [{ x: 450, y: 1090, name: "MAL", bidirectional: false},
                { x: 285, y: 990, bidirectional: false},
                { x: 480, y: 875, name: "PYR.m", bidirectional: false}],
-               name: "MAL to PYR.m", curve: true},
+               name: "MAL -> PYR.m", curve: true},
     { points: [{ x: 600, y: 940, name: "CIT", bidirectional: false},
                { x: 600, y: 860, bidirectional: false},
                { x: 800, y: 850, name: "OAA", bidirectional: false, OAA2: true}],
-               name: "CIT to OAA", curve: true},
+               name: "OAA -> CIT", curve: true},
     { points: [{ x: 620, y: 880, bidirectional: false},
                { x: 800, y: 890, name: "ACECOA.c", bidirectional: false},
                { x: 970, y: 890, name: "Fatty Acids", well: true, bidirectional: false}],
-               name: "CIT to Fatty Acids", curve: false},
+               name: "ACECOA.c -> Fatty Acids", curve: false},
     { points: [{ x: 750, y: 1090, name: "ICIT", bidirectional: true},
-               { x: 600, y: 1090, name: "GYLX", bidirectional: false},
-               { x: 450, y: 1090, name: "MAL", bidirectional: false}],
-               name: "ICIT to MAL", curve: false},
-    { points: [{ x: 525, y: 1090, bidirectional: false},
-               { x: 540, y: 1090},
-               { x: 555, y: 1040, name: "ACECOA.m", bidirectional: false, well: true}], // ? is this a well??
-               name: "ACECOA Curve", curve: true},
+               { x: 600, y: 1090, name: "GYLX", bidirectional: false}],
+               name: "ICIT -> GYLX", curve: false},
+    { points: [ { x: 600, y: 1090, name: "GYLX", bidirectional: false},
+                { x: 450, y: 1090, name: "MAL", bidirectional: false}],
+                name: "GYLX -> MAL", curve: false},
+    { points: [ { x: 555, y: 1040, name: "ACECOA.m", bidirectional: false, well: true},
+                { x: 540, y: 1090},
+                { x: 525, y: 1090, bidirectional: false}],
+               name: "GLYX + ACECOA.m -> MAL", curve: true},
     { points: [{ x: 675, y: 1090, bidirectional: false},
                { x: 630, y: 1140},
                { x: 600, y: 1240, name: "SUCC", bidirectional: false}],
-               name: "SUCC Curve", curve: true},
+               name: "ICIT -> GLYX + SUCC", curve: true},
     { points: [ { x: 830, y: 1196.066017177982, name: "GLU", bidirectional: true},
                 { x: 706.0660171779821, y: 1196.066017177982, name: "AKG", bidirectional: false}],
-                name: "GLU to AKG", curve: false},
+                name: "GLU -> AKG", curve: false},
     { points: [{ x: 830, y: 1400, name: "GLU.ext", bidirectional: false, well: true},
                { x: 830, y: 1196.066017177982, name: "GLU", bidirectional: false}],
-               name: "GLU.ext to GLU", curve: false}      
+               name: "GLU.ext -> GLU", curve: false},
+    { points: [ { x: 500, y: 1260, bidirectional: false},
+                { x: 500, y: 1220, name: "PYR.m", bidirectional: false}],
+                 name: "METCIT -> PYR.m + SUCC", curve: false},
+    { points: [ { x: 450, y: 1090, name: "MAL", bidirectional: false},
+                { x: 285, y: 990, bidirectional: false},
+                { x: 480, y: 875, name: "PYR.m", bidirectional: false}],
+                name: "MAL -> PYR.m", curve: true},    
 ];
 
 const SignificantCoordinates = {
@@ -363,7 +388,6 @@ const SignificantCoordinates = {
     "3PG": {x: 480, y: 490},
     "PEP": {x: 480, y: 620},
     "PYR.c": {x: 480, y: 750},
-    "PYRm": {x: 480, y: 875},
     "CIT": { x: 600, y: 940 },
     "P5P": {x: 670, y: 100},
     "X5P": {x: 830, y: 100},
@@ -393,7 +417,7 @@ const SignificantCoordinates = {
     "ICIT": {x: 750, y: 1090},
     "F6P2": {x: 670, y: 360, greenpath: false},
     "OAA2": {x: 800, y: 850, oaa2: true},
-    "PYR.m": {x: 480, y: 875}
+    "PYR.m": {x: 510, y: 1220}
 };
     
 // Create multiple paths
@@ -473,7 +497,7 @@ let currentDots = new Set();  // Add this back - Keep track of active animation 
 
 // Animation configuration constants
 const BASE_ANIMATION_DURATION = 2000;  // Base duration in ms
-const ANIMATION_LOOP_TIME = 20000;     // Overall loop time in ms 
+const ANIMATION_LOOP_TIME = 40000;     // Overall loop time in ms 
 const FIXED_DOT_SPACING = 40;          // Fixed spacing between dots in pixels
 const MIN_DOTS = 3;                    // Minimum number of dots per path
 
@@ -688,9 +712,8 @@ function startAnimation(pathsData, normalizedValues = []) {
     return stopAnimation;
 }
 
-// Add this function before startAnimation to map specific normalized values to paths
-function mapNormalizedValuesToPaths() {
-    // Load the flux data first
+// Simplified mapping function that directly matches path names to reaction names
+function mapPathsToNormalizedValues() {
     return d3.csv("./ProvidedData/Flux_Values_for_animation.csv").then(function(fluxData) {
         // Create a mapping of reaction names to normalized values
         const fluxMap = {};
@@ -699,65 +722,69 @@ function mapNormalizedValuesToPaths() {
         });
         console.log("Loaded flux map:", fluxMap);
         
-        // Create an array of normalized values matching the pathsData array order
-        const normalizedValues = [];
-        
-        // Map each path to its corresponding value
-        pathsData.forEach((path, index) => {
-            let value = 0.5; // Default value
-            
-            // Check exact path name
-            if (path.name === "TG Well") {
-                console.log("DEBUG: Found TG Well by name");
-                value = fluxMap["TP -> TG"] || 0.03; // Use a higher minimum value
-            } else if (path.name === "Green Path-sequence1") {
-                value = fluxMap["G6P -> P5P"] || 0.18;
-            } else if (path.name === "Green Path-sequence2") {
-                value = fluxMap["P5P -> X5P"] || 0.11;
-            } else if (path.name.match(/Green Path-sequence[4-8]/)) {
-                value = 0.05;
-            } else if (path.name === "Green Path-sequence9") {
-                value = fluxMap["TP + S7P -> F6P + E4P"] || 0.06;
-            } else if (path.name === "Green Path-sequence12") {
-                value = fluxMap["X5P + E4P -> F6P + TP"] || 0.05;
-            } else if (path.name === "TG Well") {
-                value = fluxMap["TP -> TG"] || 0.01;
-            } 
-            // If not matched by name, check by path points
-            else if (path.points && path.points.length >= 2) {
-                const startPoint = path.points[0];
-                const endPoint = path.points[path.points.length - 1];
-                
-                // Check for TP -> TG path specifically
-                if (startPoint.name === "TP" && endPoint.name === "TG") {
-                    value = fluxMap["TP -> TG"] || 0.01;
-                }
+        // Map each path to its corresponding normalized value
+        const normalizedValues = pathsData.map((path, index) => {
+            // Direct match by path name
+            if (path.name && fluxMap[path.name]) {
+                console.log(`Path ${index} - ${path.name} matched directly: ${fluxMap[path.name]}`);
+                return fluxMap[path.name];
             }
             
-            normalizedValues[index] = value;
+            // If no direct match, try to match by endpoints
+            if (path.points && path.points.length >= 2) {
+                const startPoint = path.points[0].name;
+                const endPoint = path.points[path.points.length - 1].name;
+                
+                if (startPoint && endPoint) {
+                    // Try direct mapping
+                    const directKey = `${startPoint} -> ${endPoint}`;
+                    if (fluxMap[directKey]) {
+                        console.log(`Path ${index} matched by endpoints: ${directKey}`);
+                        return fluxMap[directKey];
+                    }
+                    
+                    // Try reverse mapping (for bidirectional reactions)
+                    const reverseKey = `${endPoint} -> ${startPoint}`;
+                    if (fluxMap[reverseKey]) {
+                        console.log(`Path ${index} matched by reverse endpoints: ${reverseKey}`);
+                        return fluxMap[reverseKey];
+                    }
+                }
+            }
+
+            // Default value if no match found
+            console.log(`Path ${index} - ${path.name || "unnamed"} has no match, using default value`);
+            return 0.5;
         });
-        
-        console.log("Mapped normalized values:", normalizedValues);
+
         return normalizedValues;
     });
 }
 
-// Modify how the animation is started
+// Add this function to handle the loading overlay
+function toggleLoadingOverlay(show) {
+    const overlay = document.querySelector('.loading-overlay');
+    if (overlay) {
+        overlay.style.display = show ? 'flex' : 'none';
+    }
+}
+
+// Update the startAnimationWithCorrectValues function to use showLoading instead
 function startAnimationWithCorrectValues() {
     // Show loading overlay
-    toggleLoadingOverlay(true);
+    showLoading(true);
     
     // Load normalized values and start animation
-    mapNormalizedValuesToPaths().then(normalizedValues => {
+    mapPathsToNormalizedValues().then(normalizedValues => {
         startAnimation(pathsData, normalizedValues);
         // Hide loading overlay
-        toggleLoadingOverlay(false);
+        showLoading(false);
     }).catch(error => {
         console.error("Error mapping values:", error);
         // Fall back to default animation
         startAnimation(pathsData);
         // Hide loading overlay
-        toggleLoadingOverlay(false);
+        showLoading(false);
     });
 }
 
@@ -866,11 +893,8 @@ async function processMolecules() {
         showLoading(false);
         
         // Add button event listeners
-        document.querySelector('.startButton').addEventListener('click', () => {
-            // Always start fresh
-            isPaused = false;
-            pausedDots = [];
-            startPath(allMolecules);
+        document.querySelector('.startButton').addEventListener('click', function() {
+            startAnimationWithCorrectValues();
         });
 
         document.querySelector('.pauseButton').addEventListener('click', function() {
@@ -917,7 +941,13 @@ async function processMolecules() {
 }
 
 // Initialize the loading state to hidden when the page loads
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
+    // Update the startButton event listener
+    document.querySelector('.startButton').addEventListener('click', function() {
+        startAnimationWithCorrectValues();
+    });
+    
+    // Rest of your event listeners remain the same
     showLoading(false);
 });
 
@@ -1010,3 +1040,73 @@ function pauseAnimation() {
     // Interrupt all transitions
     d3.selectAll(".animation-dot").interrupt();
 }
+
+// Function to generate arc points between two points on a circle
+function generateArcPoints(startPoint, endPoint, cx, cy, r, numPoints = 20) {
+    const arcPoints = [];
+    
+    // Calculate angles for start and end points
+    const startAngle = Math.atan2(startPoint.y - cy, startPoint.x - cx);
+    let endAngle = Math.atan2(endPoint.y - cy, endPoint.x - cx);
+    
+    // Ensure we go the shorter way around the circle
+    if (Math.abs(endAngle - startAngle) > Math.PI) {
+        if (endAngle > startAngle) {
+            endAngle -= 2 * Math.PI;
+        } else {
+            endAngle += 2 * Math.PI;
+        }
+    }
+    
+    // Generate points along the arc
+    for (let i = 0; i <= numPoints; i++) {
+        const t = i / numPoints;
+        const angle = startAngle * (1 - t) + endAngle * t;
+        arcPoints.push({
+            x: cx + r * Math.cos(angle),
+            y: cy + r * Math.sin(angle)
+        });
+    }
+    
+    return arcPoints;
+}
+
+
+// Also remove the full circle path if it exists
+for (let i = pathsData.length - 1; i >= 0; i--) {
+    if (pathsData[i].name === "Circle Path") {
+        pathsData.splice(i, 1);
+    }
+}
+
+// Add circle segments with arc paths
+const circleSegments = [
+    { start: CircleSignificantPoints[0], end: CircleSignificantPoints[1], name: "CIT -> ICIT" },
+    { start: CircleSignificantPoints[1], end: CircleSignificantPoints[2], name: "ICIT -> AKG" },
+    { start: CircleSignificantPoints[2], end: CircleSignificantPoints[3], name: "AKG -> SUCC" },
+    { start: CircleSignificantPoints[3], end: CircleSignificantPoints[5], name: "SUCC -> MAL" },
+    { start: CircleSignificantPoints[5], end: CircleSignificantPoints[4], name: "MAL -> OAA" },
+    { start: CircleSignificantPoints[4], end: CircleSignificantPoints[0], name: "OAA -> CIT" }
+];
+
+// Add circle segments to pathsData
+circleSegments.forEach(segment => {
+    const arcPoints = generateArcPoints(
+        segment.start, 
+        segment.end, 
+        circleData.cx, 
+        circleData.cy, 
+        circleData.r,
+        30  // More points for smoother arc
+    );
+    
+    // Add labels to first and last points
+    arcPoints[0].name = segment.start.label;
+    arcPoints[arcPoints.length - 1].name = segment.end.label;
+    
+    pathsData.push({
+        points: arcPoints,
+        name: segment.name,
+        curve: true  // Use curve for smoother path
+    });
+});
