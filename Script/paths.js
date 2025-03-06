@@ -472,12 +472,12 @@ pathsData.forEach((pathData, index) => {
         pathData.points.length >= 2 && 
         pathData.points[0].name === "TP" && 
         pathData.points[pathData.points.length-1].name === "TG")) {
-        console.log(`DEBUG: Found TG Well path at index ${index}`, pathData);
+        //console.log(`DEBUG: Found TG Well path at index ${index}`, pathData); // debug log
     }
 });
 
-console.log("significantPoints:", pathsData); // for debugging
-console.log("CircleSignificantPoints:", CircleSignificantPoints); // for debugging
+//console.log("significantPoints:", pathsData); // for debugging
+//console.log("CircleSignificantPoints:", CircleSignificantPoints); // for debugging
 
 // * END: Paths 
 
@@ -498,7 +498,24 @@ const FIXED_DOT_SPACING = 40;          // Fixed spacing between dots in pixels
 const MIN_DOTS = 3;                    // Minimum number of dots per path
 
 // Add a global speed multiplier constant near the top of the file with other constants
-//const GLOBAL_SPEED_MULTIPLIER = 2.0; // Adjust this value to make the entire animation faster or slower
+const GLOBAL_SPEED_MULTIPLIER = 1.0;   // Adjust this value to make the entire animation faster or slower
+
+// Function to check if a path matches specific coordinates that need slowdown
+function shouldSlowDownPath(pathPoints) {
+    // No points to check
+    if (!pathPoints || pathPoints.length < 2) return false;
+    
+    // Check for the problematic METCIT -> PYR.m + SUCC path
+    // This path has points near (500,1260) and (500,1220)
+    const hasFirstPoint = pathPoints.some(p => 
+        p.x >= 495 && p.x <= 505 && p.y >= 1255 && p.y <= 1265);
+    
+    const hasSecondPoint = pathPoints.some(p => 
+        p.x >= 495 && p.x <= 505 && p.y >= 1215 && p.y <= 1225);
+    
+    // If both points are found, this is our target path
+    return hasFirstPoint && hasSecondPoint;
+}
 
 // Define stopAnimation as a standalone function
 function stopAnimation() {
@@ -523,7 +540,7 @@ function stopAnimation() {
     activePaths.forEach(path => path.remove());
     activePaths = [];
 
-    console.log("Animation completely stopped and cleaned up");
+    //console.log("Animation completely stopped and cleaned up"); // debug log
 }
 
 // Modify startAnimation to use more consistent timeout handling
@@ -551,7 +568,7 @@ function startAnimation(pathsData, normalizedValues = []) {
     animationRunning = true;
     isPaused = false;
     
-    console.log("Starting fresh animation cycle at", new Date().toLocaleTimeString());
+    //console.log("Starting fresh animation cycle at", new Date().toLocaleTimeString()); // debug log
     
     // Using fixed spacing for consistent visual appearance
     const GLOBAL_SPACING = 60; // Pixels between dots
@@ -567,15 +584,22 @@ function startAnimation(pathsData, normalizedValues = []) {
         
         // Apply the global speed multiplier to make everything faster/slower
         // while maintaining relative speeds between paths
-        normalizedValue = normalizedValue;
+        normalizedValue = normalizedValue * GLOBAL_SPEED_MULTIPLIER;
         
         // Important fix: Set a higher minimum speed for very slow paths
         // This ensures even the slowest paths (like TP -> TG) are visible
         const MIN_SPEED = 0.01; // Minimum speed to ensure visibility
         normalizedValue = Math.max(MIN_SPEED, normalizedValue);
         
+        // Check if this specific path should be slowed down based on its coordinates
+        if (shouldSlowDownPath(pathData.points)) {
+            // Reduce the speed by 70% for the problematic path
+            normalizedValue = normalizedValue * 0.3;
+            // console.log(`Special adjustment for path at index ${index}: slowing down by 70% based on coordinates`); // debug log
+        }
+        
         // Log the original and adjusted normalized values for debugging
-        console.log(`Path ${index} - ${pathData.name}: Original normalized value = ${normalizedValues[index]}, After multiplier = ${normalizedValue}`);
+       //console.log(`Path ${index} - ${pathData.name}: Original normalized value = ${normalizedValues[index]}, After multiplier = ${normalizedValue}`); // debug log
         
         // Create path element
         const path = svg.append("path")
@@ -603,7 +627,7 @@ function startAnimation(pathsData, normalizedValues = []) {
             const curveAdjustmentFactor = Math.min(0.7, 1.0 / lengthRatio);
             normalizedValue = normalizedValue * curveAdjustmentFactor;
             
-            console.log(`Adjusted speed for curved path ${pathData.name}: original=${normalizedValues[index]}, after multiplier=${normalizedValue}, final=${normalizedValue}, length=${totalLength}`);
+            // console.log(`Adjusted speed for curved path ${pathData.name}: original=${normalizedValues[index]}, after multiplier=${normalizedValue}, final=${normalizedValue}, length=${totalLength}`); // debug log
         }
         
         // Create gradient
@@ -643,7 +667,7 @@ function startAnimation(pathsData, normalizedValues = []) {
         // Calculate exactly how many dots we need for this path
         const dotsNeeded = Math.max(MIN_DOTS, Math.ceil(totalLength / GLOBAL_SPACING));
         
-        console.log(`Path ${index} - ${pathData.name}: Normalized value = ${normalizedValue}, Path length = ${totalLength}, Length adjustment = ${lengthAdjustment}, Animation duration = ${animationDuration}ms`);
+        //console.log(`Path ${index} - ${pathData.name}: Normalized value = ${normalizedValue}, Path length = ${totalLength}, Length adjustment = ${lengthAdjustment}, Animation duration = ${animationDuration}ms`); // debug log
         
         // We'll use a single interval for each path, with consistent timing
         // This ensures dots are always created at the exact same rate
@@ -698,7 +722,7 @@ function startAnimation(pathsData, normalizedValues = []) {
     const animationTimeout = setTimeout(() => {
         // Only restart if this is still the current animation
         if (animationRunning && !isPaused && currentAnimation === animationTimeout) {
-            console.log("Animation cycle complete - planned restart");
+            //console.log("Animation cycle complete - planned restart"); // debug log
             
             // Store current state
             const wasRunning = animationRunning;
@@ -724,12 +748,12 @@ function startAnimation(pathsData, normalizedValues = []) {
             // Wait longer to ensure complete cleanup
             setTimeout(() => {
                 if (wasRunning) {
-                    console.log("Planned restart with fresh state");
+                    //console.log("Planned restart with fresh state"); // debug log
                     startAnimation(pathsData, normalizedValues);
                 }
             }, 200); // Increased delay for more reliable cleanup
         } else {
-            console.log("Animation cycle complete but not restarting (was manually stopped)");
+            //console.log("Animation cycle complete but not restarting (was manually stopped)"); // debug log
         }
     }, ANIMATION_LOOP_TIME);
     
@@ -747,40 +771,38 @@ function mapPathsToNormalizedValues() {
         fluxData.forEach(d => {
             fluxMap[d.Reaction] = parseFloat(d.Normalized);
         });
-        console.log("Loaded flux map:", fluxMap);
+        //console.log("Loaded flux map:", fluxMap); // debug log
         
-        // Map each path to its corresponding normalized value
-        const normalizedValues = pathsData.map((path, index) => {
-            // Direct match by path name
+        // Generate normalized values array for each path
+        let normalizedValues = pathsData.map((path, index) => {
+            // If not matched by name, check by path points
+            if (path.points && path.points.length >= 2) {
+                const startPoint = path.points[0];
+                const endPoint = path.points[path.points.length - 1];
+            }
+            
+            // Fall back to generic mappings if no match
             if (path.name && fluxMap[path.name]) {
-                console.log(`Path ${index} - ${path.name} matched directly: ${fluxMap[path.name]}`);
+                //console.log(`Path ${index} - ${path.name}: Using direct name match with value ${fluxMap[path.name]}`); // debug log
                 return fluxMap[path.name];
             }
             
-            // If no direct match, try to match by endpoints
+            // If no direct match, try to match by start and end points
             if (path.points && path.points.length >= 2) {
-                const startPoint = path.points[0].name;
-                const endPoint = path.points[path.points.length - 1].name;
+                const start = path.points[0].name;
+                const end = path.points[path.points.length - 1].name;
                 
-                if (startPoint && endPoint) {
-                    // Try direct mapping
-                    const directKey = `${startPoint} -> ${endPoint}`;
-                    if (fluxMap[directKey]) {
-                        console.log(`Path ${index} matched by endpoints: ${directKey}`);
-                        return fluxMap[directKey];
-                    }
-                    
-                    // Try reverse mapping (for bidirectional reactions)
-                    const reverseKey = `${endPoint} -> ${startPoint}`;
-                    if (fluxMap[reverseKey]) {
-                        console.log(`Path ${index} matched by reverse endpoints: ${reverseKey}`);
-                        return fluxMap[reverseKey];
+                if (start && end) {
+                    const key = `${start} -> ${end}`;
+                    if (fluxMap[key]) {
+                        //console.log(`Path ${index} - ${path.name}: Using start/end point match (${key}) with value ${fluxMap[key]}`); // debug log
+                        return fluxMap[key];
                     }
                 }
             }
-
-            // Default value if no match found
-            console.log(`Path ${index} - ${path.name || "unnamed"} has no match, using default value`);
+            
+            // Default to mid-range if no match
+            //console.log(`Path ${index} - ${path.name || "unnamed"}: NO MATCH FOUND - Using default value 0.5`); // debug log
             return 0.5;
         });
 
@@ -846,38 +868,15 @@ function startPath(allMolecules) {
 
     // Generate normalized values array for each path
     let normalizedValues = pathsData.map((path, index) => {
-        // First try exact path name matches
-        if (path.name === "Green Path-sequence1") {
-            return normalizedMap.get("G6P -> P5P") || 0.18;
-        } else if (path.name === "Green Path-sequence2") {
-            return normalizedMap.get("P5P -> X5P") || 0.11;
-        } else if (path.name.match(/Green Path-sequence[4-8]/)) {
-            return 0.05;
-        } else if (path.name === "Green Path-sequence9") {
-            return normalizedMap.get("TP + S7P -> F6P + E4P") || 0.06;
-        } else if (path.name === "Green Path-sequence10") {
-            return normalizedMap.get("P5P + X5P -> S7P + TP") || 0.06;
-        } else if (path.name === "Green Path-sequence11") {
-            return normalizedMap.get("P5P + X5P -> S7P + TP") || 0.06;
-        } else if (path.name === "Green Path-sequence12") {
-            return normalizedMap.get("X5P + E4P -> F6P + TP") || 0.05;
-        } else if (path.name === "TG Well") {
-            return normalizedMap.get("TP -> TG") || 0.01;
-        }
-        
         // If not matched by name, check by path points
         if (path.points && path.points.length >= 2) {
             const startPoint = path.points[0];
             const endPoint = path.points[path.points.length - 1];
-            
-            // Check for TP -> TG path specifically
-            if (startPoint.name === "TP" && endPoint.name === "TG") {
-                return normalizedMap.get("TP -> TG") || 0.01;
-            }
         }
         
         // Fall back to generic mappings if no match
         if (path.name && normalizedMap.has(path.name)) {
+            //console.log(`Path ${index} - ${path.name}: Using direct name match with value ${normalizedMap.get(path.name)}`); // debug log
             return normalizedMap.get(path.name);
         }
         
@@ -889,22 +888,24 @@ function startPath(allMolecules) {
             if (start && end) {
                 const key = `${start} -> ${end}`;
                 if (normalizedMap.has(key)) {
+                    //console.log(`Path ${index} - ${path.name}: Using start/end point match (${key}) with value ${normalizedMap.get(key)}`); // debug log
                     return normalizedMap.get(key);
                 }
             }
         }
         
         // Default to mid-range if no match
+        //console.log(`Path ${index} - ${path.name || "unnamed"}: NO MATCH FOUND - Using default value 0.5`); // debug log
         return 0.5;
     });
 
-    console.log("Normalized values for paths:", normalizedValues);
+    //console.log("Normalized values for paths:", normalizedValues); // debug log
 
     // Start the animation with normalized values
     if (pathsData && Array.isArray(pathsData)) {
         startAnimation(pathsData, normalizedValues);
     } else {
-        console.error("pathsData is not available:", pathsData);
+        console.error("pathsData is not available:", pathsData); // debug log
     }
 }
 
@@ -940,7 +941,20 @@ async function processMolecules() {
                             pathIndex: d3Dot.attr("data-path-index")
                         };
                     });
-                    this.textContent = "Resume";
+                    this.textContent = "Pause";
+                    
+                    // Important: Freeze all dot animations in place
+                    svg.selectAll(".animation-dot").interrupt();
+                    
+                    // Clear the animation timeout to prevent auto-restart
+                    if (currentAnimation) {
+                        clearTimeout(currentAnimation);
+                        currentAnimation = null;
+                    }
+                    
+                    // Clear all intervals to prevent new dots from being created
+                    dotIntervals.forEach(clearInterval);
+                    dotIntervals = [];
                 } else {
                     // Resume animation
                     isPaused = false;
@@ -961,7 +975,7 @@ async function processMolecules() {
         });
 
     } catch (error) {
-        console.error('Error processing molecules:', error);
+        console.error('Error processing molecules:', error); // debug log
         // Hide loading if there's an error
         showLoading(false);
     }
@@ -1007,7 +1021,7 @@ function separateParts(molecule, parts, pathsData, reactionType) {
     const { left, right } = parts;
 
     if (left.length === 0 || right.length === 0) {
-        console.warn(`Not enough significant parts for molecule ${molecule.reaction}: left=${left}, right=${right}`);
+        console.warn(`Not enough significant parts for molecule ${molecule.reaction}: left=${left}, right=${right}`); 
         return;
     }
 
@@ -1016,7 +1030,7 @@ function separateParts(molecule, parts, pathsData, reactionType) {
     const end = right[0].trim();
 
     if (SignificantCoordinates[beginning] && SignificantCoordinates[end]) {
-        console.log(`Creating path for ${beginning} -> ${end}`); // Debugging
+        //console.log(`Creating path for ${beginning} -> ${end}`); // Debugging
         pathsData.push({
             points: [SignificantCoordinates[beginning], SignificantCoordinates[end]],
             bidirectional: reactionType === 'bidirectional'
@@ -1024,7 +1038,7 @@ function separateParts(molecule, parts, pathsData, reactionType) {
 
         // If bidirectional, also create product -> reactant
         if (reactionType === 'bidirectional') {
-            console.log(`Creating path for ${end} -> ${beginning}`); // Debugging
+            //console.log(`Creating path for ${end} -> ${beginning}`); // Debugging
             pathsData.push({
                 points: [SignificantCoordinates[end], SignificantCoordinates[beginning]],
                 bidirectional: true
@@ -1040,7 +1054,7 @@ processMolecules().catch(error => {
 // Example function to move the molecule from start to end
 function moveMolecule(start, end) {
     // Implement logic to animate the movement of the molecule from start to end
-    console.log(`Moving molecule ${molecule.name} from ${start} to ${end}`); // for debugging
+   //console.log(`Moving molecule ${molecule.name} from ${start} to ${end}`); // for debugging
 }
 
 // Add progress bar update
