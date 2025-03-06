@@ -251,6 +251,10 @@ const pathsData = [
     { points: [{ x: 480, y: 875, name: "PYR.m", bidirectional: false},
                { x: 600, y: 940, name: "CIT", bidirectional: true}], 
                name: "PYR.m -> CIT", curve: true }, 
+    { points: [ {x: 600, y: 940, name: "CIT"}, // TODO: figure out why there are two sets of dots coming out of this point. One is fast and the other is the slow correct one. 
+                { x: 600, y: 860}, 
+                { x: 800, y: 850, name: "OAA"}], 
+                name: "CIT -> ACECOA.c + OAA", curve: true }, 
     { points: [ { x: 620, y: 880, bidirectional: false},
                 { x: 800, y: 890, name: "ACECOA.c", bidirectional: true}], 
                 name: "CIT -> ACECOA.c + OAA", curve: true }, 
@@ -319,13 +323,12 @@ const pathsData = [
                { x: 285, y: 983.9339828220179, bidirectional: true},
                { x: 285, y: 720, bidrectional: true},
                { x: 230, y: 720, name: "ASP", bidirectional: true}],
-               name: "OAA -> ASP", curve: false},
+               name: "OAA -> ASP", curve: true},
     { points: [{ x: 230, y: 600, name: "THR", bidrectional: false},
-               { x: 50, y: 720, bidirectional: false},
-               { x: 50, y: 810, bidirectional: false},
-               { x: 230, y: 1090, bidirectional: false},
+               //{ x: 50, y: 720, bidirectional: false},
+               { x: 90, y: 810, bidirectional: false},
                { x: 365, y: 1200, name: "METCIT", bidirectional: false}],
-                name: "THR + OAA -> METCIT", curve: true}, 
+                name: "THR + OAA -> METCIT"}, 
     { points: [ { x: 365, y: 1200, name: "METCIT", bidirectional: false},
                 { x: 500, y: 1280, bidirectional: true},
                 { x: 600, y: 1240, name: "SUCC", bidirectional: false}],
@@ -333,10 +336,10 @@ const pathsData = [
     { points: [{ x: 493.93398282201787, y: 983.9339828220179, name: "OAA", bidirectional: false},
                { x: 295, y: 1060, bidirectional: false},
                { x: 365, y: 1200, name: "METCIT", bidirectional: false}],
-               name: "OAA -> METCIT", curve: true},
-    { points: [{ x: 500, y: 1265, bidirectional: false},
+               name: "THR + OAA -> METCIT", curve: true},
+    /*{ points: [{ x: 500, y: 1265, bidirectional: false},
                { x: 500, y: 1220, name: "PYR.m", bidirectional: false}],
-                name: "MAL -> PYR.m", curve: false},
+                name: "MAL -> PYR.m", curve: false},*/
     { points: [{ x: 480, y: 620, name: "PEP", bidirectional: true},
                { x: 365, y: 620, bidirectional: true},
                { x: 365, y: 875, bidirectional: true},
@@ -346,10 +349,6 @@ const pathsData = [
                { x: 285, y: 990, bidirectional: false},
                { x: 480, y: 875, name: "PYR.m", bidirectional: false}],
                name: "MAL -> PYR.m", curve: true},
-    { points: [{ x: 600, y: 940, name: "CIT", bidirectional: false},
-               { x: 600, y: 860, bidirectional: false},
-               { x: 800, y: 850, name: "OAA", bidirectional: false, OAA2: true}],
-               name: "OAA -> CIT", curve: true},
     { points: [{ x: 800, y: 890, name: "ACECOA.c", bidirectional: false},
                { x: 970, y: 890, name: "Fatty Acids", well: true, bidirectional: false}],
                name: "ACECOA.c -> Fatty Acids", curve: false},
@@ -375,11 +374,7 @@ const pathsData = [
                name: "GLU.ext -> GLU", curve: false},
     { points: [ { x: 500, y: 1260, bidirectional: false},
                 { x: 500, y: 1220, name: "PYR.m", bidirectional: false}],
-                 name: "METCIT -> PYR.m + SUCC", curve: false},
-    { points: [ { x: 450, y: 1090, name: "MAL", bidirectional: false},
-                { x: 285, y: 990, bidirectional: false},
-                { x: 480, y: 875, name: "PYR.m", bidirectional: false}],
-                name: "MAL -> PYR.m", curve: true},    
+                 name: "METCIT -> PYR.m + SUCC", curve: false},  
 ];
 
 const SignificantCoordinates = {
@@ -418,7 +413,6 @@ const SignificantCoordinates = {
     "ACECOA.c": {x: 800, y: 890},
     "ICIT": {x: 750, y: 1090},
     "F6P2": {x: 670, y: 360, greenpath: false},
-    "OAA2": {x: 800, y: 850, oaa2: true},
     "PYR.m": {x: 510, y: 1220}
 };
     
@@ -499,9 +493,12 @@ let currentDots = new Set();  // Add this back - Keep track of active animation 
 
 // Animation configuration constants
 const BASE_ANIMATION_DURATION = 2000;  // Base duration in ms
-const ANIMATION_LOOP_TIME = 40000;     // Overall loop time in ms 
+const ANIMATION_LOOP_TIME = 120000;     // Overall loop time in ms 
 const FIXED_DOT_SPACING = 40;          // Fixed spacing between dots in pixels
 const MIN_DOTS = 3;                    // Minimum number of dots per path
+
+// Add a global speed multiplier constant near the top of the file with other constants
+//const GLOBAL_SPEED_MULTIPLIER = 2.0; // Adjust this value to make the entire animation faster or slower
 
 // Define stopAnimation as a standalone function
 function stopAnimation() {
@@ -565,19 +562,22 @@ function startAnimation(pathsData, normalizedValues = []) {
     
     // Create all paths first
     pathsData.forEach((pathData, index) => {
-        let normalizedValue = normalizedValues[index] || 0.5;
+        // Get the normalized value for this path
+        let normalizedValue = normalizedValues[index];
+        
+        // Apply the global speed multiplier to make everything faster/slower
+        // while maintaining relative speeds between paths
+        normalizedValue = normalizedValue;
         
         // Important fix: Set a higher minimum speed for very slow paths
         // This ensures even the slowest paths (like TP -> TG) are visible
-        const MIN_SPEED = 0.03; // Increase from 0.01 to 0.03
+        const MIN_SPEED = 0.01; // Minimum speed to ensure visibility
         normalizedValue = Math.max(MIN_SPEED, normalizedValue);
         
-        // Log for debugging TP -> TG path
-        if (pathData.name === "TG Well") {
-            console.log(`DEBUG: Processing TG Well path with normalized value: ${normalizedValue}`);
-        }
+        // Log the original and adjusted normalized values for debugging
+        console.log(`Path ${index} - ${pathData.name}: Original normalized value = ${normalizedValues[index]}, After multiplier = ${normalizedValue}`);
         
-        // Create path element (existing code remains the same)
+        // Create path element
         const path = svg.append("path")
             .datum(pathData.points)
             .attr("d", pathData.curve ? lineGeneratorCurved : lineGeneratorStraight)
@@ -586,7 +586,27 @@ function startAnimation(pathsData, normalizedValues = []) {
         
         activePaths.push(path);
         
-        // Create gradient (existing code remains the same)
+        // Get the path length to adjust speed for curved paths
+        const pathNode = path.node();
+        const totalLength = pathNode.getTotalLength();
+        
+        // Adjust speed for curved paths - they need to be slower to appear at the same speed
+        if (pathData.curve) {
+            // Calculate a speed adjustment factor based on path length
+            // For curved paths, we slow down the animation proportionally to how much longer the path is
+            // compared to a typical straight path
+            const TYPICAL_STRAIGHT_PATH_LENGTH = 200; // Approximate average length of straight paths
+            const lengthRatio = totalLength / TYPICAL_STRAIGHT_PATH_LENGTH;
+            
+            // Apply a curve adjustment factor - curved paths should move slower
+            // The more the path deviates from a straight line, the more we slow it down
+            const curveAdjustmentFactor = Math.min(0.7, 1.0 / lengthRatio);
+            normalizedValue = normalizedValue * curveAdjustmentFactor;
+            
+            console.log(`Adjusted speed for curved path ${pathData.name}: original=${normalizedValues[index]}, after multiplier=${normalizedValue}, final=${normalizedValue}, length=${totalLength}`);
+        }
+        
+        // Create gradient
         const gradientId = `sphereGradient-${index}`;
         if (!svg.select(`#${gradientId}`).node()) {
             const gradient = svg.append("defs")
@@ -609,17 +629,21 @@ function startAnimation(pathsData, normalizedValues = []) {
                 .attr("stop-opacity", 1);
         }
         
-        const pathNode = path.node();
-        const totalLength = pathNode.getTotalLength();
-        
         // Calculate dot speed based on normalized value
-        const speedFactor = Math.max(0.01, normalizedValue);
-        const animationDuration = BASE_ANIMATION_DURATION / speedFactor;
+        // Higher normalized value = faster animation = lower duration
+        const speedFactor = normalizedValue; // Use normalized value directly as speed factor
+        
+        // NEW: Calculate animation duration based on both normalized value AND path length
+        // This ensures that longer paths with the same normalized value don't appear to move faster
+        // We use a standard reference length to calibrate speeds
+        const REFERENCE_LENGTH = 150; // A reference path length for calibration
+        const lengthAdjustment = totalLength / REFERENCE_LENGTH;
+        const animationDuration = (BASE_ANIMATION_DURATION / speedFactor) * lengthAdjustment;
         
         // Calculate exactly how many dots we need for this path
         const dotsNeeded = Math.max(MIN_DOTS, Math.ceil(totalLength / GLOBAL_SPACING));
         
-        console.log(`Path ${index} - Name: ${pathData.name}, Normalized: ${normalizedValue}, Duration: ${animationDuration}ms, Dots: ${dotsNeeded}, Length: ${totalLength}`);
+        console.log(`Path ${index} - ${pathData.name}: Normalized value = ${normalizedValue}, Path length = ${totalLength}, Length adjustment = ${lengthAdjustment}, Animation duration = ${animationDuration}ms`);
         
         // We'll use a single interval for each path, with consistent timing
         // This ensures dots are always created at the exact same rate
@@ -634,7 +658,8 @@ function startAnimation(pathsData, normalizedValues = []) {
                 .attr("r", 7)
                 .attr("fill", `url(#${gradientId})`)
                 .attr("class", "animation-dot")
-                .attr("data-path-index", index);
+                .attr("data-path-index", index)
+                .attr("data-normalized", normalizedValue); // Store normalized value for debugging
             
             // Position dot at start of path
             const startPoint = pathNode.getPointAtLength(0);
@@ -643,9 +668,9 @@ function startAnimation(pathsData, normalizedValues = []) {
             
             currentDots.add(dot.node());
             
-            // Animate the dot along the path with exact timing
+            // Animate the dot along the path with exact timing based on normalized value
             const transition = dot.transition()
-                .duration(animationDuration)
+                .duration(animationDuration) // This duration is now properly calculated from normalized value
                 .ease(d3.easeLinear)
                 .tween("pathTween", () => {
                     return (t) => {

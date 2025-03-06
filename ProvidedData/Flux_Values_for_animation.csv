@@ -1,5 +1,6 @@
 ﻿Reaction,FluxValue,Normalized
 GLC.ext -> G6P,101.8,0.47
+G6P -> F6P,101.8,0.19
 G6P -> WALL,21.7,0.10
 G6P -> P5P,39.3,0.18
 P5P -> X5P,24.4,0.11
