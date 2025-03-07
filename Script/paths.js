@@ -466,14 +466,6 @@ pathsData.forEach((pathData, index) => {
         .attr("font-family", "arial")
         .attr("fill", "black")
         .text(d => d.name);  // Use the full name, including suffix
-
-    // Add a special debug log for the TG Well path
-    if (pathData.name === "TG Well" || (pathData.points && 
-        pathData.points.length >= 2 && 
-        pathData.points[0].name === "TP" && 
-        pathData.points[pathData.points.length-1].name === "TG")) {
-        //console.log(`DEBUG: Found TG Well path at index ${index}`, pathData); // debug log
-    }
 });
 
 //console.log("significantPoints:", pathsData); // for debugging
@@ -498,7 +490,7 @@ const FIXED_DOT_SPACING = 40;          // Fixed spacing between dots in pixels
 const MIN_DOTS = 3;                    // Minimum number of dots per path
 
 // Add a global speed multiplier constant near the top of the file with other constants
-const GLOBAL_SPEED_MULTIPLIER = 1.0;   // Adjust this value to make the entire animation faster or slower
+const GLOBAL_SPEED_MULTIPLIER = 2.0;   // Adjust this value to make the entire animation faster or slower
 
 // Function to check if a path matches specific coordinates that need slowdown
 function shouldSlowDownPath(pathPoints) {
