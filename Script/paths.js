@@ -674,13 +674,6 @@ function startAnimation(pathsData, normalizedValues = []) {
             }
         }
         
-        // Special case for ACECOA.c -> Fatty Acids to make it consistent with CIT -> ACECOA.c + OAA
-        if (pathData.name === "ACECOA.c -> Fatty Acids") {
-            const originalAdjustment = lengthAdjustment;
-            lengthAdjustment = lengthAdjustment * 0.8; // Reduce by 20% to make it faster
-            console.log(`Special adjustment for ACECOA.c -> Fatty Acids: Original = ${originalAdjustment.toFixed(2)}, Modified = ${lengthAdjustment.toFixed(2)}`);
-        }
-        
         const animationDuration = (BASE_ANIMATION_DURATION / normalizedValue) * lengthAdjustment;
         
         // Calculate exactly how many dots we need for this path
