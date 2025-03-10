@@ -21,8 +21,8 @@ function loadMolecules() {
             allMolecules.push(molecule);
         });
 
-        console.log("Processed Molecules:", allMolecules);  // Log processed molecules DEBUGGING
-        console.log("Is allMolecules an array?", Array.isArray(allMolecules));  // Check if allMolecules is an array DEBUGGING
+        //console.log("Processed Molecules:", allMolecules);  // Log processed molecules DEBUGGING
+        //console.log("Is allMolecules an array?", Array.isArray(allMolecules));  // Check if allMolecules is an array DEBUGGING
         return allMolecules;
     }).catch(function(error) {
         console.error('Error loading or parsing CSV file:', error);
@@ -267,18 +267,14 @@ const pathsData = [
                 { x: 830, y: 100, name: "X5P", bidirectional: true}], 
                 name: "P5P -> X5P", curve: false },
     { points: [ { x: 830, y: 100, name: "X5P", bidirectional: true}, 
-                { x: 930, y: 100, bidirectional: false}], 
-                name: "X5P + E4P -> F6P + TP", curve: false }, 
-    { points: [ { x: 930, y: 100, bidirectional: false}, 
-                { x: 930, y: 400, bidirectional: false}],
-                name: "X5P + E4P -> F6P + TP", curve: false }, 
-    { points: [ { x: 930, y: 400, bidirectional: false}, 
-                { x: 620, y: 400, bidirectional: false}],
-                name: "X5P + E4P -> F6P + TP", curve: false }, 
-    { points: [ { x: 620, y: 400, bidirectional: false}, 
-                { x: 620, y: 200, bidirectional: false}],
-                name: "X5P + E4P -> F6P + TP", curve: false }, 
-    { points: [ { x: 620, y: 200, bidirectional: false}, 
+                { x: 930, y: 100, bidirectional: false},
+                { x: 930, y: 100, bidirectional: false}, 
+                { x: 930, y: 400, bidirectional: false},
+                { x: 930, y: 400, bidirectional: false}, 
+                { x: 620, y: 400, bidirectional: false},
+                { x: 620, y: 400, bidirectional: false}, 
+                { x: 620, y: 200, bidirectional: false},
+                { x: 620, y: 200, bidirectional: false}, 
                 { x: 670, y: 200, name: "TP", bidirectional: true}],
                 name: "X5P + E4P -> F6P + TP", curve: false }, 
     { points: [ { x: 670, y: 200, name: "TP", bidirectional: true},
@@ -323,12 +319,12 @@ const pathsData = [
                { x: 285, y: 983.9339828220179, bidirectional: true},
                { x: 285, y: 720, bidrectional: true},
                { x: 230, y: 720, name: "ASP", bidirectional: true}],
-               name: "OAA -> ASP", curve: true},
+               name: "OAA -> ASP"},
     { points: [{ x: 230, y: 600, name: "THR", bidrectional: false},
                //{ x: 50, y: 720, bidirectional: false},
                { x: 90, y: 810, bidirectional: false},
                { x: 365, y: 1200, name: "METCIT", bidirectional: false}],
-                name: "THR + OAA -> METCIT"}, 
+                name: "THR + OAA -> METCIT", curve: true}, 
     { points: [ { x: 365, y: 1200, name: "METCIT", bidirectional: false},
                 { x: 500, y: 1280, bidirectional: true},
                 { x: 600, y: 1240, name: "SUCC", bidirectional: false}],
@@ -340,10 +336,10 @@ const pathsData = [
     /*{ points: [{ x: 500, y: 1265, bidirectional: false},
                { x: 500, y: 1220, name: "PYR.m", bidirectional: false}],
                 name: "MAL -> PYR.m", curve: false},*/
-    { points: [{ x: 480, y: 620, name: "PEP", bidirectional: true},
-               { x: 365, y: 620, bidirectional: true},
+    { points: [{ x: 493.93398282201787, y: 983.9339828220179, name: "OAA", bidirectional: false},
                { x: 365, y: 875, bidirectional: true},
-               { x: 493.93398282201787, y: 983.9339828220179, name: "OAA", bidirectional: false}],
+               { x: 365, y: 620, bidirectional: true},
+               { x: 480, y: 620, name: "PEP", bidirectional: true}],
                name: "OAA -> PEP", curve: false},
     { points: [{ x: 450, y: 1090, name: "MAL", bidirectional: false},
                { x: 285, y: 990, bidirectional: false},
@@ -606,23 +602,7 @@ function startAnimation(pathsData, normalizedValues = []) {
         const pathNode = path.node();
         const totalLength = pathNode.getTotalLength();
         
-        // Adjust speed for curved paths - they need to be slower to appear at the same speed
-        if (pathData.curve) {
-            // Calculate a speed adjustment factor based on path length
-            // For curved paths, we slow down the animation proportionally to how much longer the path is
-            // compared to a typical straight path
-            const TYPICAL_STRAIGHT_PATH_LENGTH = 200; // Approximate average length of straight paths
-            const lengthRatio = totalLength / TYPICAL_STRAIGHT_PATH_LENGTH;
-            
-            // Apply a curve adjustment factor - curved paths should move slower
-            // The more the path deviates from a straight line, the more we slow it down
-            const curveAdjustmentFactor = Math.min(0.7, 1.0 / lengthRatio);
-            normalizedValue = normalizedValue * curveAdjustmentFactor;
-            
-            // console.log(`Adjusted speed for curved path ${pathData.name}: original=${normalizedValues[index]}, after multiplier=${normalizedValue}, final=${normalizedValue}, length=${totalLength}`); // debug log
-        }
-        
-        // Create gradient
+        // Create gradient - this was missing and causing the error
         const gradientId = `sphereGradient-${index}`;
         if (!svg.select(`#${gradientId}`).node()) {
             const gradient = svg.append("defs")
@@ -645,21 +625,76 @@ function startAnimation(pathsData, normalizedValues = []) {
                 .attr("stop-opacity", 1);
         }
         
-        // Calculate dot speed based on normalized value
-        // Higher normalized value = faster animation = lower duration
-        const speedFactor = normalizedValue; // Use normalized value directly as speed factor
-        
         // NEW: Calculate animation duration based on both normalized value AND path length
         // This ensures that longer paths with the same normalized value don't appear to move faster
         // We use a standard reference length to calibrate speeds
-        const REFERENCE_LENGTH = 150; // A reference path length for calibration
-        const lengthAdjustment = totalLength / REFERENCE_LENGTH;
-        const animationDuration = (BASE_ANIMATION_DURATION / speedFactor) * lengthAdjustment;
+        const REFERENCE_LENGTH = 125; // Changed from 150px to 125px to better match average path length
+        let lengthAdjustment = totalLength / REFERENCE_LENGTH;
+        
+        // MODIFIED: For curved paths, reduce the impact of length adjustment to make them move faster
+        // This ensures curved paths with similar normalized values to straight paths move at more similar speeds
+        if (pathData.curve) {
+            // Apply a cube root to the length adjustment to reduce its impact
+            // This makes longer curved paths move faster than they would with full length adjustment
+            lengthAdjustment = Math.cbrt(lengthAdjustment);
+            console.log(`Curved path adjustment: Original length adjustment = ${(totalLength / REFERENCE_LENGTH).toFixed(2)}, Modified = ${lengthAdjustment.toFixed(2)}`);
+        } 
+        // NEW: Special case for very long straight paths (over 400px)
+        // This prevents paths like the 730px "THR + OAA -> METCIT" from being too slow
+        else if (totalLength > 400) {
+            // Apply a square root to the length adjustment for very long straight paths
+            // This is less aggressive than the cube root used for curved paths
+            const originalAdjustment = lengthAdjustment;
+            lengthAdjustment = Math.sqrt(lengthAdjustment);
+            console.log(`Long straight path adjustment: Original length adjustment = ${originalAdjustment.toFixed(2)}, Modified = ${lengthAdjustment.toFixed(2)}`);
+        }
+        // NEW: For straight paths with similar lengths to curved paths, apply a small adjustment
+        // This ensures straight paths don't appear slower than curved paths with similar normalized values
+        else if (!pathData.curve && totalLength >= 150 && totalLength <= 200) {
+            const originalAdjustment = lengthAdjustment;
+            lengthAdjustment = lengthAdjustment * 0.85; // Reduce by 15% to make it faster
+            console.log(`Medium straight path adjustment: Original = ${originalAdjustment.toFixed(2)}, Modified = ${lengthAdjustment.toFixed(2)}`);
+        }
+        
+        // Special case for the specific paths with the same name but different implementations
+        if (pathData.name === "THR + OAA -> METCIT") {
+            // Check if this is the very long curved version (around 676px)
+            if (pathData.curve && totalLength > 600 && totalLength < 700) {
+                // Apply a more aggressive adjustment to slow it down
+                const originalAdjustment = lengthAdjustment;
+                lengthAdjustment = lengthAdjustment * 1.4; // Adjusted from 1.75 to 1.4 to make it faster
+                console.log(`Special adjustment for long curved THR + OAA -> METCIT (${totalLength.toFixed(0)}px): Original = ${originalAdjustment.toFixed(2)}, Modified = ${lengthAdjustment.toFixed(2)}`);
+            }
+            // Check if this is the curved version with length around 317px
+            else if (pathData.curve && totalLength > 300 && totalLength < 330) {
+                // Increase the length adjustment by 15% to slow it down slightly
+                const originalAdjustment = lengthAdjustment;
+                lengthAdjustment = lengthAdjustment * 1.15;
+                console.log(`Special adjustment for curved THR + OAA -> METCIT: Original = ${originalAdjustment.toFixed(2)}, Modified = ${lengthAdjustment.toFixed(2)}`);
+            }
+        }
+        
+        // Special case for ACECOA.c -> Fatty Acids to make it consistent with CIT -> ACECOA.c + OAA
+        if (pathData.name === "ACECOA.c -> Fatty Acids") {
+            const originalAdjustment = lengthAdjustment;
+            lengthAdjustment = lengthAdjustment * 0.8; // Reduce by 20% to make it faster
+            console.log(`Special adjustment for ACECOA.c -> Fatty Acids: Original = ${originalAdjustment.toFixed(2)}, Modified = ${lengthAdjustment.toFixed(2)}`);
+        }
+        
+        const animationDuration = (BASE_ANIMATION_DURATION / normalizedValue) * lengthAdjustment;
         
         // Calculate exactly how many dots we need for this path
         const dotsNeeded = Math.max(MIN_DOTS, Math.ceil(totalLength / GLOBAL_SPACING));
         
-        //console.log(`Path ${index} - ${pathData.name}: Normalized value = ${normalizedValue}, Path length = ${totalLength}, Length adjustment = ${lengthAdjustment}, Animation duration = ${animationDuration}ms`); // debug log
+        // Comprehensive debug statement showing all speed-related values
+        console.log(`Path ${index} - ${pathData.name}: 
+            Original normalized = ${normalizedValues[index].toFixed(2)}, 
+            After multiplier = ${(normalizedValues[index] * GLOBAL_SPEED_MULTIPLIER).toFixed(2)}, 
+            Final normalized = ${normalizedValue.toFixed(2)}, 
+            Path length = ${totalLength.toFixed(0)}px, 
+            Length adjustment = ${lengthAdjustment.toFixed(2)}, 
+            Animation duration = ${animationDuration.toFixed(0)}ms, 
+            Is curved = ${pathData.curve ? 'Yes' : 'No'}`);
         
         // We'll use a single interval for each path, with consistent timing
         // This ensures dots are always created at the exact same rate
